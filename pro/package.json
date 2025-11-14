@@ -1,0 +1,29 @@
+{
+  "name": "index.js",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node src/validators/index.js",
+    "dev:watch": "nodemon src/validators/index.js"
+  },
+  "author": "akash",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "brcypt": "^1.0.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "express-validator": "^7.2.1",
+    "jsonwebtoken": "^9.0.2",
+    "mailgen": "^2.0.29",
+    "mongoose": "^8.18.0",
+    "nodemailer": "^7.0.6",
+    "nodemon": "^3.1.10",
+    "socket.io": "^4.8.1"
+  }
+}

@@ -1,0 +1,1 @@
+"mongodb+srv://akash:akash95189@cluster0.sy7yobp.mongodb.net/mydb"
