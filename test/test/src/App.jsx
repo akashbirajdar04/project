@@ -81,9 +81,20 @@ function App() {
       </Route>
 
       {/* Fallback */}
-      <Route path="*" element={<div className="min-h-screen flex items-center justify-center">
-        <h2 className="text-xl font-semibold">404 — Page not found</h2>
-      </div>} />
+      <Route
+        path="*"
+        element={
+          <div className="page-shell">
+            <div className="content-card" style={{ textAlign: "center" }}>
+              <h2 className="section-title">404 — Page not found</h2>
+              <p className="section-subtitle">The page you requested does not exist.</p>
+              <a href="/" className="btn btn-primary">
+                Back to home
+              </a>
+            </div>
+          </div>
+        }
+      />
     </Routes>
   );
 }

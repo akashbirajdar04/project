@@ -1,7 +1,8 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../lib/api";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
+import { Sparkles } from "lucide-react";
 
 export const Login = () => {
   const [email, setEmail] = useState("");
@@ -14,7 +15,7 @@ export const Login = () => {
     setIsLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:3000/login", {
+      const res = await api.post("/login", {
         email,
         password,
       });
@@ -38,66 +39,70 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-8 md:p-10">
-        {/* Header */}
-        <div className="text-center space-y-1 mb-6">
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-800">Welcome back</h1>
-          <p className="text-sm text-slate-500">Sign in to continue</p>
-        </div>
+    <div className="auth-page">
+      <div className="backdrop-orbs">
+        <div className="orb one" />
+        <div className="orb two" />
+      </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-slate-700">Email</label>
-            <input
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-white text-slate-900 placeholder-slate-400 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500 transition"
-              required
-            />
-          </div>
+      <div className="auth-panel">
+        <section className="visual">
+          <p className="hero-badge">
+            <Sparkles size={16} />
+            Welcome back
+          </p>
+          <h1>Access your dashboard</h1>
+          <p>
+            Manage hostels, mess facilities, and student requests from one modern control centre built for
+            clarity.
+          </p>
+        </section>
 
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-slate-700">Password</label>
-              <Link to="/forgot-password" className="text-xs text-indigo-600 hover:underline">
-                Forgot?
-              </Link>
+        <section>
+          <h2 className="section-title">Sign in</h2>
+          <p className="section-subtitle">Use your registered account to continue</p>
+          <form className="form" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label className="form__label" htmlFor="email">
+                Email address
+              </label>
+              <input
+                id="email"
+                type="email"
+                className="form__control"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </div>
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-white text-slate-900 placeholder-slate-400 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500 transition"
-              required
-            />
+            <div className="form-group">
+              <div className="flex flex--between">
+                <label className="form__label" htmlFor="password">
+                  Password
+                </label>
+                <Link to="/forgot-password" className="badge-info">
+                  Forgot?
+                </Link>
+              </div>
+              <input
+                id="password"
+                type="password"
+                className="form__control"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <button type="submit" className="btn btn-primary" disabled={isLoading}>
+              {isLoading ? "Signing in..." : "Sign in"}
+            </button>
+          </form>
+          <div className="auth-footer">
+            New to the platform? <Link to="/register">Create an account</Link>
           </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-lg hover:shadow-xl transition disabled:opacity-50"
-          >
-            {isLoading ? "Signing In..." : "Sign In"}
-          </button>
-        </form>
-
-        {/* Divider */}
-        <div className="border-t border-slate-200 my-6"></div>
-
-        <Link to="/register">
-          <button
-            type="button"
-            className="w-full py-3 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 transition font-semibold tracking-wide"
-          >
-            Create Account
-          </button>
-        </Link>
+        </section>
       </div>
     </div>
   );

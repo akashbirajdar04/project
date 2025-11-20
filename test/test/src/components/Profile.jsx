@@ -14,7 +14,7 @@ export const Profile = () => {
   const RenderComponent = Component;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-100 flex flex-col items-stretch justify-start p-0 font-sans">
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 to-blue-100 flex flex-col items-stretch justify-start p-0 font-sans overflow-x-hidden">
       <RenderComponent />
     </div>
   );

@@ -1,9 +1,11 @@
-import { Chat,Message } from '../models/chat.js'
+import { Chat, Message } from '../models/chat.js';
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import mongoose from "mongoose";
+import path from 'path';
+import { fileURLToPath } from 'url';
 import AuthRoute from '../routes/auth-route.js';
 import AnnouncementRoute from '../routes/announcement-route.js';
 import ComplaintRoute from '../routes/complaint-route.js';
@@ -12,18 +14,33 @@ import StudentRoute from '../routes/student-route.js';
 import MessReqRoute from '../routes/mess-requests-route.js';
 import UserBasicRoute from '../routes/user-basic-route.js';
 import HostelStructureRoute from '../routes/hostel-structure-route.js';
+
+// Get the directory of the current module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
+
+// Enable CORS
 app.use(cors());
+
+// Parse JSON bodies
 app.use(express.json());
-app.use('/',AuthRoute)
-app.use('/', AnnouncementRoute)
-app.use('/', ComplaintRoute)
-app.use('/', MenuRoute)
-app.use('/', StudentRoute)
-app.use('/', MessReqRoute)
-app.use('/', UserBasicRoute)
-app.use('/', HostelStructureRoute)
-// ✅ Create HTTP server
+
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, '../../../public')));
+
+// API Routes
+app.use('/api', AuthRoute);
+app.use('/api', AnnouncementRoute);
+app.use('/api', ComplaintRoute);
+app.use('/api', MenuRoute);
+app.use('/api', StudentRoute);
+app.use('/api', MessReqRoute);
+app.use('/api', UserBasicRoute);
+app.use('/api', HostelStructureRoute);
+
+// ✅ Create HTTP server before setting up Socket.IO
 export const server = http.createServer(app);
 
 // ✅ Setup Socket.IO
@@ -34,7 +51,12 @@ const io = new Server(server, {
   },
 });
 
+// Handle SPA (Single Page Application) routing - Must be after all other routes
+app.get(/^[^.]*$/, (req, res) => {
+    res.sendFile(path.join(__dirname, '../../../public/index.html'));
+});
 
+// Socket.IO connection handler
 io.on("connection", (socket) => {
   console.log("🟢 Connected:", socket.id);
 
