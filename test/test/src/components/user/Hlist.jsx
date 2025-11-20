@@ -32,49 +32,43 @@ export const Hlist = () => {
   }, []);
 
   return (
-    <div className="pt-4 md:pt-8 pr-4 md:pr-8 pb-4 md:pb-8 pl-0">
-      <div className="mb-5">
-        <div className="text-slate-500 text-sm">View hostel details and availability</div>
-        <h1 className="text-2xl font-bold text-slate-800">Hostels</h1>
-      </div>
+    <div className="content-card">
+      <header className="panel-heading" style={{ marginBottom: "24px" }}>
+        <div>
+          <p className="section-subtitle">Browse verified accomodations</p>
+          <h2 className="section-title">Hostels</h2>
+        </div>
+      </header>
 
       {loading ? (
-        <div className="text-slate-500">Loading...</div>
+        <div className="empty-state">Loading hostels...</div>
       ) : hostels.length ? (
-        <div className="space-y-4">
+        <div className="list-grid card-grid">
           {hostels.map((h) => {
             const isOtherWhileEnrolled = enrolledHostelId && enrolledHostelId !== h._id;
             const CardInner = (
-              <div className={`rounded-2xl border border-slate-200 bg-white p-5 ${isOtherWhileEnrolled ? 'opacity-60 cursor-not-allowed' : 'shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-indigo-200 hover:ring-1 hover:ring-indigo-100 transition'}`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
-                      <Building2 size={18} />
-                    </div>
-                    <div>
-                      <div className="text-lg font-semibold text-slate-800">{h.name || 'Unnamed Hostel'}</div>
-                      <div className="text-sm text-slate-500">{h.address || 'Address not provided'}</div>
-                    </div>
+              <article className={`list-card${isOtherWhileEnrolled ? " opacity-60" : ""}`}>
+                <div className="list-card__header">
+                  <div>
+                    <div className="list-card__title">{h.name || "Unnamed hostel"}</div>
+                    <div className="list-card__meta">{h.address || "Address not provided"}</div>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-slate-600">
-                    <Users size={16} />
-                    <span>{Array.isArray(h.accepted) ? h.accepted.length : 0} members</span>
-                    {isOtherWhileEnrolled && (
-                      <span className="text-xs font-medium bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">Already allocated</span>
-                    )}
-                  </div>
+                  <div className="badge-info">{Array.isArray(h.accepted) ? h.accepted.length : 0} members</div>
                 </div>
-              </div>
+                {isOtherWhileEnrolled && <div className="badge-warning">Already allocated</div>}
+              </article>
             );
             return isOtherWhileEnrolled ? (
               <div key={h._id}>{CardInner}</div>
             ) : (
-              <Link key={h._id} to={`/Profile/Hlist/${h._id}`} className="block">{CardInner}</Link>
+              <Link key={h._id} to={`/Profile/Hlist/${h._id}`} className="block">
+                {CardInner}
+              </Link>
             );
           })}
         </div>
       ) : (
-        <div className="text-slate-500">No hostels found.</div>
+        <div className="empty-state">No hostels found. Check back later.</div>
       )}
     </div>
   );
