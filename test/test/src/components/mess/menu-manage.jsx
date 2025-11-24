@@ -2,14 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../../lib/api";
 import { toast } from "sonner";
 
-const DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-const DAY_NAMES = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-const SLOTS = ["breakfast", "lunch", "dinner"];
+const DAYS = ["mon","tue","wed","thu","fri","sat","sun"];
+const SLOTS = ["breakfast","lunch","dinner"];
 
 const MessMenuManage = () => {
   const [week, setWeek] = useState({});
-  const todayIndex = new Date().getDay();
-  const [day, setDay] = useState(DAYS[todayIndex]);
+  const [day, setDay] = useState(DAYS[new Date().getDay() === 0 ? 6 : new Date().getDay()-1]);
   const [slot, setSlot] = useState("lunch");
   const [capacity, setCapacity] = useState(100);
   const [newItem, setNewItem] = useState({ name: "", allergens: "", calories: "" });
@@ -81,7 +79,7 @@ const MessMenuManage = () => {
         <h1 className="text-xl md:text-2xl font-semibold text-slate-800">Manage Weekly Menu</h1>
         <div className="flex gap-2">
           <select value={day} onChange={(e)=>setDay(e.target.value)} className="px-3 py-2 rounded-lg border border-slate-300">
-            {DAY_NAMES.map(d => <option key={d} value={d}>{d.toUpperCase()}</option>)}
+            {DAYS.map(d => <option key={d} value={d}>{d.toUpperCase()}</option>)}
           </select>
           <select value={slot} onChange={(e)=>setSlot(e.target.value)} className="px-3 py-2 rounded-lg border border-slate-300">
             {SLOTS.map(s => <option key={s} value={s}>{s}</option>)}

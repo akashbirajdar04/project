@@ -1,7 +1,6 @@
 // HostelMessManagement.js
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Building2, UtensilsCrossed, Users, ArrowRight, Sparkles } from "lucide-react";
 
  export const Index = () => {
     const navigate=useNavigate();
@@ -14,80 +13,52 @@ import { Building2, UtensilsCrossed, Users, ArrowRight, Sparkles } from "lucide-
 
 
   return (
-    <div className="page-shell">
-      <div className="backdrop-orbs">
-        <div className="orb one" />
-        <div className="orb two" />
-        <div className="orb three" />
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col items-center">
+      {/* Header Section */}
+      <div className="text-center mt-24 mb-10">
+        <div className="flex justify-center mb-6">
+          <div className="w-16 h-16 bg-indigo-200 rounded-xl flex items-center justify-center">
+            {/* Icon goes here */}
+          </div>
+        </div>
+        <h1 className="text-5xl font-bold text-indigo-600 mb-4">Hostel & Mess Management</h1>
+        <p className="text-lg text-gray-600 mb-8">Connect students with hostels and mess facilities. Manage requests, bookings, and communications all in one place.</p>
+        <div className="flex justify-center gap-4">
+          <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-lg transition font-semibold">Get Started</button>
+          <button  onClick={handleregister} className="bg-white border border-indigo-200 hover:bg-indigo-50 text-indigo-700 px-6 py-2 rounded-lg text-lg font-semibold">Create Account</button>
+        </div>
       </div>
 
-      <section className="hero">
-        <div className="hero-badge">
-          <Sparkles size={16} />
-          Smart campus living
+      {/* Features Section */}
+      <div className="flex justify-center gap-8 mb-16 w-full max-w-5xl">
+        <div className="bg-white shadow rounded-xl p-8 flex-1 flex flex-col items-center">
+          <div className="mb-6 w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center"></div>
+          <h2 className="text-2xl font-bold mb-3">Hostel Management</h2>
+          <p className="text-gray-600 text-center">List and manage hostel accommodations with ease. Track room availability and handle requests.</p>
         </div>
-        <h1 className="hero-title">
-          Hostel &amp; Mess Management <span className="hero__highlight">made simple</span>
-        </h1>
-        <p className="hero-subtitle">
-          Connect students with verified hostels and curated mess facilities. Handle bookings, meal plans,
-          and communication inside a single modern workspace.
-        </p>
-        <div className="hero-buttons">
-          <button className="btn btn-primary" onClick={handleregister}>
-            Get started <ArrowRight size={18} />
-          </button>
-          <button className="btn btn-outline" onClick={handlelogin}>
-            Sign in
-          </button>
+        <div className="bg-white shadow rounded-xl p-8 flex-1 flex flex-col items-center">
+          <div className="mb-6 w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
+            <span className="text-2xl">🍲</span>
+          </div>
+          <h2 className="text-2xl font-bold mb-3">Mess Facilities</h2>
+          <p className="text-gray-600 text-center">Connect students with mess services. Manage meal plans and subscriptions efficiently.</p>
         </div>
-      </section>
+        <div className="bg-white shadow rounded-xl p-8 flex-1 flex flex-col items-center">
+          <div className="mb-6 w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center"></div>
+          <h2 className="text-2xl font-bold mb-3">Student Portal</h2>
+          <p className="text-gray-600 text-center">Browse available hostels and mess options. Send requests and manage bookings in real-time.</p>
+        </div>
+      </div>
 
-      <section className="feature-grid">
-        {[
-          {
-            icon: <Building2 size={26} />,
-            title: "Hostel Management",
-            text: "List rooms, track occupancy, and approve student requests with structured workflows."
-          },
-          {
-            icon: <UtensilsCrossed size={26} />,
-            title: "Mess Facilities",
-            text: "Publish menus, manage subscriptions, and monitor capacity with live insights."
-          },
-          {
-            icon: <Users size={26} />,
-            title: "Student Portal",
-            text: "Students compare spaces, submit requests, and follow their bookings in real time."
-          }
-        ].map((item) => (
-          <article key={item.title} className="feature-card">
-            <div className="feature-icon">{item.icon}</div>
-            <h3>{item.title}</h3>
-            <p>{item.text}</p>
-          </article>
-        ))}
-      </section>
-
-      <section className="cta-light">
-        <div className="hero-badge">
-          <Sparkles size={14} />
-          Join thousands of students
+      {/* Call to Action */}
+      <div className="w-full flex flex-col items-center mb-24">
+        <h2 className="text-3xl font-bold mb-3">Ready to Get Started?</h2>
+        <p className="text-gray-700 mb-8">Join our platform today and experience seamless hostel and mess management.</p>
+        <div className="flex gap-4">
+          <button onClick={handleregister} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-lg transition font-semibold">Register Now</button>
+          <button onClick={handlelogin} className="bg-white border border-indigo-200 hover:bg-indigo-50 text-indigo-700 px-6 py-2 rounded-lg text-lg font-semibold">Sign In</button>
         </div>
-        <h2>Ready to streamline student living?</h2>
-        <p>
-          Bring every hostel and mess interaction into one intuitive experience. Launch your account in
-          minutes and start inviting admins, owners, and students.
-        </p>
-        <div className="hero-buttons">
-          <button className="btn btn-primary" onClick={handleregister}>
-            Register now <ArrowRight size={18} />
-          </button>
-          <button className="btn btn-outline" onClick={handlelogin}>
-            Access my account
-          </button>
-        </div>
-      </section>
+      </div>
     </div>
   );
 };

@@ -3,9 +3,10 @@ import api from "../../lib/api";
 import { toast } from "sonner";
 
 export const Messprofile = () => {
-  const initialFormState = {
+  const id = localStorage.getItem("Id");
+  const [form, setForm] = useState({
     name: "",
-    address: "",
+    adress: "",
     price: "",
     description: "",
     facilities: [],
@@ -14,12 +15,10 @@ export const Messprofile = () => {
     vegNonVeg: "both",
     priceRange: "medium",
     location: { city: "", state: "", pincode: "" },
-  };
-  const id = localStorage.getItem("Id");
-  const [form, setForm] = useState(initialFormState);
+  });
   const [facilityInput, setFacilityInput] = useState("");
   const [saving, setSaving] = useState(false);
-  const canSave = useMemo(() => form.name.trim() && form.address.trim() && form.price !== "", [form]);
+  const canSave = useMemo(() => form.name.trim() && form.adress.trim() && form.price !== "", [form]);
 
   useEffect(() => {
     const load = async () => {
@@ -28,7 +27,7 @@ export const Messprofile = () => {
         const d = res.data?.data || {};
         setForm({
           name: d.name || "",
-          address: d.address || "",
+          adress: d.adress || "",
           price: d.price || "",
           description: d.description || "",
           facilities: Array.isArray(d.facilities) ? d.facilities : [],
@@ -85,7 +84,7 @@ export const Messprofile = () => {
           </div>
           <div className="md:col-span-4">
             <label className="block text-sm text-slate-600 mb-1">Address</label>
-            <input value={form.address} onChange={(e)=>update({address:e.target.value})} className="w-full px-3 py-2 rounded-lg border border-slate-300" placeholder="Street, Area" />
+            <input value={form.adress} onChange={(e)=>update({adress:e.target.value})} className="w-full px-3 py-2 rounded-lg border border-slate-300" placeholder="Street, Area" />
           </div>
           <div className="md:col-span-2">
             <label className="block text-sm text-slate-600 mb-1">Price (per month)</label>

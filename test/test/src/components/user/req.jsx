@@ -33,91 +33,88 @@ export const Req = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-4">
-      <div className="w-full max-w-lg bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 p-8 animate-fadeIn">
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-100 to-indigo-200">
-              <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Hostel Request</h2>
-              <p className="text-sm text-slate-500 mt-1">Hostel ID: <span className="font-medium text-slate-700">{id}</span></p>
-            </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-md p-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-800">Hostel Request</h2>
+            <p className="text-sm text-gray-500 mt-1">Hostel id: <span className="font-medium text-gray-700">{id}</span></p>
+          </div>
+          <div className="text-sm text-right">
+            <p className="text-xs text-gray-400">Sender</p>
+            <p className="font-medium">{senderid ?? "Not logged in"}</p>
           </div>
         </div>
 
-        <div className="space-y-6">
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-            <p className="text-slate-700 leading-relaxed">
-              Click the button below to send a hostel request to the owner. You'll be notified when the owner responds.
-            </p>
-          </div>
+        <div className="mt-6">
+          <p className="text-gray-600">
+            Click the button below to send a hostel request to the owner. You’ll be notified when the owner
+            responds.
+          </p>
 
-          <div className="flex items-center gap-3">
+          <div className="mt-4 flex items-center gap-3">
             <button
               onClick={handleClick}
               disabled={loading || !senderid}
-              className={`flex-1 inline-flex items-center justify-center px-6 py-3.5 rounded-xl font-semibold shadow-lg focus:outline-none transition-all transform hover:-translate-y-0.5
+              className={`inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium shadow-sm focus:outline-none
                 ${loading || !senderid
-                  ? "bg-slate-200 text-slate-500 cursor-not-allowed"
-                  : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 hover:shadow-xl"}
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-indigo-600 text-white hover:bg-indigo-700"}
               `}
             >
               {loading ? (
-                <>
-                  <svg
-                    className="animate-spin h-5 w-5 mr-2 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                  </svg>
-                  Sending...
-                </>
-              ) : (
-                "Send Request"
-              )}
+                <svg
+                  className="animate-spin h-4 w-4 mr-2 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+              ) : null}
+              {loading ? "Sending..." : "Send Request"}
             </button>
 
             <button
               onClick={() => {
                 setStatus(null);
               }}
-              className="px-4 py-3.5 text-sm rounded-xl border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all font-medium"
+              className="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:bg-gray-50"
             >
               Reset
             </button>
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-            <span className="text-sm font-semibold text-slate-700 mb-3 block">Status:</span>
+          <div className="mt-4">
+            <span className="text-sm text-gray-500">Status:</span>
             <div className="mt-2">
               {status === null && (
-                <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
                   Not sent
                 </span>
               )}
               {status === "pending" && (
-                <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-                  ⏳ Pending
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                  Pending
                 </span>
               )}
               {status === "accepted" && (
-                <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                  ✓ Accepted
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Accepted
                 </span>
               )}
               {status === "rejected" && (
-                <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-red-100 text-red-800 border border-red-200">
-                  ✗ Rejected
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  Rejected
                 </span>
               )}
             </div>
+          </div>
+
+          <div className="mt-6 text-xs text-gray-400">
+            Tip: make sure your backend is running at <code>http://localhost:3000</code> and the endpoint
+            <code className="mx-1">/Profile/Hostelrequest/:hostelId/:senderId</code> accepts POST.
           </div>
         </div>
       </div>

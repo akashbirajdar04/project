@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { LogOut, Home, User, FileText, Users } from "lucide-react";
+import { LogOut, Home, User, FileText } from "lucide-react";
 
 export const Hostel = () => {
   const [time, setTime] = useState(new Date().toLocaleTimeString());
@@ -16,113 +16,98 @@ export const Hostel = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 flex flex-col font-sans overflow-hidden">
-      {/* Header */}
-      <div className="w-full px-4 md:px-8 pt-8 md:pt-10 pb-6">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border-2 border-emerald-100 p-6 md:p-8 shadow-lg">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-200 shadow-md">
-              <Home className="w-8 h-8 text-emerald-600" />
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent leading-tight">Hostel Management Dashboard</h1>
-              <p className="text-slate-600 text-sm md:text-base mt-1">Manage profile, review requests, and track your activities.</p>
-            </div>
-          </div>
+    <div className="flex h-screen w-screen font-sans bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
+      {/* Sidebar */}
+      <aside className="w-64 bg-emerald-700 text-white flex flex-col py-8 px-6 shadow-xl">
+        <div className="flex items-center gap-3 mb-10">
+          <Home className="w-7 h-7" />
+          <h1 className="text-2xl font-bold tracking-wide">🏠 Hostel Dashboard</h1>
         </div>
-
-        {/* Navigation Links */}
-        <div className="mt-6 flex flex-wrap gap-3">
+        <nav className="flex flex-col gap-4">
           <NavLink
             to="profile"
             className={({ isActive }) =>
-              `px-5 py-3 rounded-xl text-sm font-semibold transition-all shadow-md border-2 card-hover ${
-                isActive
-                  ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-emerald-600 shadow-lg"
-                  : "bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300"
+              `flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-all ${
+                isActive ? "bg-emerald-600 text-white" : "hover:bg-emerald-600 hover:text-white text-emerald-100"
               }`
             }
           >
-            <User className="w-4 h-4 inline mr-2" />
+            <User className="w-5 h-5" />
             Profile
           </NavLink>
-
           <NavLink
             to="requests"
             className={({ isActive }) =>
-              `px-5 py-3 rounded-xl text-sm font-semibold transition-all shadow-md border-2 card-hover ${
-                isActive
-                  ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-emerald-600 shadow-lg"
-                  : "bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300"
+              `flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-all ${
+                isActive ? "bg-emerald-600 text-white" : "hover:bg-emerald-600 hover:text-white text-emerald-100"
               }`
             }
           >
-            <FileText className="w-4 h-4 inline mr-2" />
             Requests
           </NavLink>
-
           <NavLink
             to="hostel-structure"
             className={({ isActive }) =>
-              `px-5 py-3 rounded-xl text-sm font-semibold transition-all shadow-md border-2 card-hover ${
+              `block px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 isActive
-                  ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-emerald-600 shadow-lg"
-                  : "bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300"
+                  ? "bg-emerald-600 text-white"
+                  : "text-emerald-100 hover:bg-emerald-700/40"
               }`
             }
           >
-            <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-            </svg>
             Structure
           </NavLink>
-
           <NavLink
             to="hostel-allocation"
             className={({ isActive }) =>
-              `px-5 py-3 rounded-xl text-sm font-semibold transition-all shadow-md border-2 card-hover ${
+              `block px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 isActive
-                  ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-emerald-600 shadow-lg"
-                  : "bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300"
+                  ? "bg-emerald-600 text-white"
+                  : "text-emerald-100 hover:bg-emerald-700/40"
               }`
             }
           >
-            <Users className="w-4 h-4 inline mr-2" />
             Allocation
           </NavLink>
-
           <NavLink
             to="messege"
             className={({ isActive }) =>
-              `px-5 py-3 rounded-xl text-sm font-semibold transition-all shadow-md border-2 card-hover ${
-                isActive
-                  ? "bg-gradient-to-r from-teal-600 to-cyan-600 text-white border-teal-600 shadow-lg"
-                  : "bg-white text-teal-700 border-teal-200 hover:bg-teal-50 hover:border-teal-300"
+              `flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-all ${
+                isActive ? "bg-emerald-600 text-white" : "hover:bg-emerald-600 hover:text-white text-emerald-100"
               }`
             }
           >
-            <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-            Messages
+            💬 Message
           </NavLink>
-
+        </nav>
+        <div className="flex-1"></div>
+        <div className="mt-8 flex flex-col gap-4">
+          <span className="text-sm text-emerald-100 flex items-center gap-2">
+            🕒 {time}
+          </span>
           <button
             onClick={handleLogout}
-            className="px-5 py-3 rounded-xl text-sm font-semibold transition-all shadow-md border-2 bg-red-500 hover:bg-red-600 text-white border-red-600 shadow-lg card-hover"
+            className="flex items-center gap-2 bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg font-semibold text-white transition-all"
           >
-            <LogOut className="w-4 h-4 inline mr-2" size={18} />
-            Logout
+            <LogOut size={18} /> Logout
           </button>
         </div>
-      </div>
+      </aside>
 
-      {/* Render child routes */}
-      <div className="flex-1 w-full px-4 md:px-8 pb-8">
-        <div className="bg-white/80 backdrop-blur-sm p-6 md:p-8 rounded-2xl shadow-lg border-2 border-slate-200 min-h-[60vh]">
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col justify-center items-center overflow-y-auto">
+        {/* Welcome Section */}
+        <section className="text-center mt-16 mb-6 w-full max-w-2xl">
+          <h2 className="text-3xl font-extrabold text-emerald-700">Welcome Back!</h2>
+          <p className="text-gray-600 mt-2 text-lg">
+            Manage your hostel activities efficiently and stay updated.
+          </p>
+        </section>
+        {/* Outlet for nested routes */}
+        <div className="w-full px-4 md:px-16">
           <Outlet />
         </div>
-      </div>
+      </main>
     </div>
   );
 };
