@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom"
 import { useEffect, useMemo, useState } from "react"
 import api from "../../lib/api"
-import { UtensilsCrossed, CalendarDays, AlertCircle, CheckCheck, Building2, Users, MessageSquare, Bell, FileText } from "lucide-react"
+import { UtensilsCrossed, CalendarDays, AlertCircle, CheckCheck } from "lucide-react"
 
 export const User = () => {
     const [isOpen, setIsOpen] = useState(false)
@@ -72,194 +72,246 @@ export const User = () => {
         if (userId) loadBookings()
     }, [userId])
 
-    const navClass = ({ isActive }) =>
-        `sidebar__link${isActive ? " sidebar__link--active" : ""}`
-
     return (
-        <div className="app-shell">
-            <button className="mobile-toggle" onClick={() => setIsOpen(!isOpen)}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="4" y1="6" x2="20" y2="6" />
-                    <line x1="4" y1="12" x2="20" y2="12" />
-                    <line x1="4" y1="18" x2="20" y2="18" />
-                </svg>
-                Menu
-            </button>
-            <aside className={`sidebar ${isOpen ? "is-open" : ""}`}>
-                <div className="sidebar__brand">
-                    <div className="pill">
-                        <Users size={18} /> Student Hub
-                    </div>
+        <div className="w-screen h-screen min-h-screen flex bg-gradient-to-tr from-emerald-50 via-teal-50 to-cyan-50 overflow-hidden font-sans">
+            {/* SIDEBAR */}
+            <aside
+                className={`
+                    fixed md:static top-0 left-0 z-40 flex flex-col h-full w-64 
+                    bg-[#111a27] text-white border-r border-slate-200
+                    ${isOpen ? "translate-x-0" : "-translate-x-full"}
+                    md:translate-x-0 transition-transform duration-300 ease-in-out
+                    shadow-xl md:shadow-none
+                `}
+            >
+                {/* Dashboard Title */}
+                <div className="p-5 border-b border-slate-700 text-xl font-semibold text-emerald-300 tracking-wide select-none">
+                    Student Dashboard
+                    <button
+                        className="md:hidden float-right text-lg"
+                        onClick={() => setIsOpen(false)}
+                        aria-label="Close Menu"
+                    >✕</button>
                 </div>
-                <nav className="sidebar__nav">
-                    <NavLink to="Mlist" className={navClass}>
-                        <UtensilsCrossed size={18} /> Mess List
+                <nav className="flex flex-col p-4 gap-2 flex-1">
+                    <NavLink
+                        to="Mlist"
+                        className={({ isActive }) =>
+                            `px-4 py-2 rounded-lg transition-colors ${isActive ? "bg-slate-800 text-white" : "text-slate-200 hover:bg-slate-800"}`
+                        }
+                    >
+                        Mess List
                     </NavLink>
-                    <NavLink to="Hlist" className={navClass}>
-                        <Building2 size={18} /> Hostel List
+                    <NavLink
+                        to="Hlist"
+                        className={({ isActive }) =>
+                            `px-4 py-2 rounded-lg transition-colors ${isActive ? "bg-slate-800 text-white" : "text-slate-200 hover:bg-slate-800"}`
+                        }
+                    >
+                        Hostel List
                     </NavLink>
-                    {enrolledMess?._id && (
-                        <NavLink to={`Hlist/${enrolledMess._id}`} className={navClass}>
-                            <UtensilsCrossed size={18} /> My Mess
+                    {enrolledMess && enrolledMess._id && (
+                        <NavLink
+                            to={`Hlist/${enrolledMess._id}`}
+                            className={({ isActive }) =>
+                                `px-4 py-2 rounded-lg transition-colors ${isActive ? "bg-slate-800 text-white" : "text-slate-200 hover:bg-slate-800"}`
+                            }
+                        >
+                            My Mess
                         </NavLink>
                     )}
-                    {enrolledHostel?._id && (
-                        <NavLink to={`Hlist/${enrolledHostel._id}`} className={navClass}>
-                            <Building2 size={18} /> My Hostel
+                    {enrolledHostel && enrolledHostel._id && (
+                        <NavLink
+                            to={`Hlist/${enrolledHostel._id}`}
+                            className={({ isActive }) =>
+                                `px-4 py-2 rounded-lg transition-colors ${isActive ? "bg-slate-800 text-white" : "text-slate-200 hover:bg-slate-800"}`
+                            }
+                        >
+                            My Hostel
                         </NavLink>
                     )}
-                    <NavLink to="msg" className={navClass}>
-                        <MessageSquare size={18} /> Messages
+                    <NavLink
+                        to="msg"
+                        className={({ isActive }) =>
+                            `px-4 py-2 rounded-lg transition-colors ${isActive ? "bg-slate-800 text-white" : "text-slate-200 hover:bg-slate-800"}`
+                        }
+                    >
+                        Messages
                     </NavLink>
-                    <NavLink to="announcements" className={navClass}>
-                        <Bell size={18} /> Announcements
+                    <NavLink
+                        to="announcements"
+                        className={({ isActive }) =>
+                            `px-4 py-2 rounded-lg transition-colors ${isActive ? "bg-slate-800 text-white" : "text-slate-200 hover:bg-slate-800"}`
+                        }
+                    >
+                        Announcements
                     </NavLink>
-                    <NavLink to="complaints" className={navClass}>
-                        <FileText size={18} /> Complaints
+                    <NavLink
+                        to="complaints"
+                        className={({ isActive }) =>
+                            `px-4 py-2 rounded-lg transition-colors ${isActive ? "bg-slate-800 text-white" : "text-slate-200 hover:bg-slate-800"}`
+                        }
+                    >
+                        Complaints
                     </NavLink>
                 </nav>
-                <div className="footer-note">© 2025 Hostel Admin</div>
+                <div className="px-4 py-3 border-t border-slate-700 text-xs text-center text-slate-400">
+                    © 2025 Hostel Admin
+                </div>
             </aside>
-
-            <main className="content">
+            {/* MOBILE TOGGLE */}
+            <button
+                className="md:hidden absolute top-5 left-5 bg-slate-200 text-slate-700 px-3 py-1 rounded shadow hover:bg-slate-300 z-50"
+                onClick={() => setIsOpen(true)}
+                aria-label="Open Menu"
+            >☰</button>
+            {/* MAIN CONTENT */}
+            <main className={`flex-1 h-full overflow-y-auto flex items-start ${atHome ? 'justify-center p-4 md:p-10' : 'justify-start pt-4 md:pt-10 pr-4 md:pr-10 pb-4 md:pb-10 pl-0 md:pl-0'} md:ml-64 transition-all duration-300`}>
                 {atHome ? (
-                    <div className="dashboard-grid">
-                        <section className="hero-panel">
-                            <p className="section-subtitle">Welcome back! Here is today’s snapshot.</p>
-                            <h2 className="section-title">Student dashboard</h2>
-                        </section>
+                <div className="w-full max-w-7xl bg-white rounded-2xl shadow-lg p-6 md:p-8 flex flex-col gap-6">
+                    <div className="border-b border-slate-200 pb-4">
+                        <div className="text-slate-500 text-sm">Welcome back! Here's what's happening today.</div>
+                        <h2 className="mt-1 text-xl md:text-2xl font-semibold text-slate-800">Dashboard</h2>
+                    </div>
 
-                        <div className="kpi-grid">
-                            <article className="kpi-card kpi-purple">
-                                <div>
-                                    <p className="kpi-label">Total Hostels</p>
-                                    <p className="kpi-card__value">{enrolledHostel ? 1 : 0}</p>
-                                </div>
-                                <Building2 size={32} />
-                            </article>
-                            <article className="kpi-card kpi-green">
-                                <div>
-                                    <p className="kpi-label">Today’s bookings</p>
-                                    <p className="kpi-card__value">{bookings.length}</p>
-                                </div>
-                                <UtensilsCrossed size={32} />
-                            </article>
-                            <article className="kpi-card kpi-amber">
-                                <div>
-                                    <p className="kpi-label">Pending complaints</p>
-                                    <p className="kpi-card__value">{pendingComplaints}</p>
-                                </div>
-                                <AlertCircle size={32} />
-                            </article>
-                            <article className="kpi-card kpi-blue">
-                                <div>
-                                    <p className="kpi-label">Resolved issues</p>
-                                    <p className="kpi-card__value">{resolvedComplaints}</p>
-                                </div>
-                                <CheckCheck size={32} />
-                            </article>
+                    {/* KPI cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="p-4 rounded-xl border bg-white border-slate-200 flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
+                                <CalendarDays size={20} />
+                            </div>
+                            <div>
+                                <div className="text-xs text-slate-500">Total Hostels</div>
+                                <div className="text-xl font-semibold text-slate-800">{enrolledHostel ? 1 : 0}</div>
+                            </div>
                         </div>
-
-                        <div className="panel-split">
-                            <section className="panel">
-                                <div className="panel-heading">
-                                    <div className="flex" style={{ gap: "12px", alignItems: "center" }}>
-                                        <UtensilsCrossed /> <strong>Today's menu</strong>
-                                    </div>
-                                    <select value={day} onChange={(e) => setDay(e.target.value)} className="form__control">
-                                        {DAYS.map((d) => (
-                                            <option key={d} value={d}>
-                                                {d.toUpperCase()}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="panel-list">
-                                    {["breakfast", "lunch", "dinner"].map((meal) => {
-                                        const its = week?.[day]?.[meal]?.items ?? []
-                                        const label = meal.charAt(0).toUpperCase() + meal.slice(1)
-                                        return (
-                                            <div key={meal} className="list-card">
-                                                <div className="list-card__header">
-                                                    <span className="list-card__title">{label}</span>
-                                                </div>
-                                                <p className="list-card__meta">
-                                                    {its.length
-                                                        ? its
-                                                              .map((x) => (typeof x === "string" ? x : x.name))
-                                                              .join(", ")
-                                                        : "Not set"}
-                                                </p>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                                <div className="panel-heading" style={{ marginTop: "18px" }}>
-                                    <strong>Capacity</strong>
-                                    <select value={slot} onChange={(e) => setSlot(e.target.value)} className="form__control">
-                                        <option value="breakfast">Breakfast</option>
-                                        <option value="lunch">Lunch</option>
-                                        <option value="dinner">Dinner</option>
-                                    </select>
-                                </div>
-                                <div style={{ marginTop: "12px" }}>
-                                    <div className="badge-info">
-                                        {cap.remaining} left / {cap.total}
-                                    </div>
-                                    <div style={{ marginTop: "8px", height: "14px", borderRadius: "999px", background: "#e2e8f0" }}>
-                                        <div
-                                            style={{
-                                                height: "100%",
-                                                borderRadius: "999px",
-                                                background: "linear-gradient(90deg,#0ea5e9,#22d3ee)",
-                                                width: cap.total > 0 ? `${Math.min(100, ((cap.total - cap.remaining) / cap.total) * 100)}%` : "0%"
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            </section>
-
-                            <section className="panel">
-                                <div className="panel-heading">
-                                    <div className="flex" style={{ gap: "12px", alignItems: "center" }}>
-                                        <AlertCircle /> <strong>Recent complaints</strong>
-                                    </div>
-                                </div>
-                                <div className="empty-state">No complaints yet.</div>
-                            </section>
+                        <div className="p-4 rounded-xl border bg-white border-slate-200 flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-sky-50 text-sky-600">
+                                <UtensilsCrossed size={20} />
+                            </div>
+                            <div>
+                                <div className="text-xs text-slate-500">Today's Bookings</div>
+                                <div className="text-xl font-semibold text-slate-800">{bookings.length}</div>
+                            </div>
                         </div>
-
-                        <div className="panel-split">
-                            <section className="panel">
-                                <h3>Enrolled mess</h3>
-                                {enrolledMess ? (
-                                    <div className="stack">
-                                        <p className="section-title">{enrolledMess.name || "—"}</p>
-                                        {enrolledMess.adress && <p className="section-subtitle">{enrolledMess.adress}</p>}
-                                        {enrolledMess.price && <div className="badge-info">₹{enrolledMess.price}</div>}
-                                    </div>
-                                ) : (
-                                    <div className="empty-state">Not enrolled</div>
-                                )}
-                            </section>
-                            <section className="panel">
-                                <h3>Enrolled hostel</h3>
-                                {enrolledHostel ? (
-                                    <div className="stack">
-                                        <p className="section-title">{enrolledHostel.name || "—"}</p>
-                                        {enrolledHostel.adress && <p className="section-subtitle">{enrolledHostel.adress}</p>}
-                                        {Array.isArray(enrolledHostel.accepted) && (
-                                            <div className="badge-info">Members: {enrolledHostel.accepted.length}</div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div className="empty-state">Not enrolled</div>
-                                )}
-                            </section>
+                        <div className="p-4 rounded-xl border bg-white border-slate-200 flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-amber-50 text-amber-600">
+                                <AlertCircle size={20} />
+                            </div>
+                            <div>
+                                <div className="text-xs text-slate-500">Pending Complaints</div>
+                                <div className="text-xl font-semibold text-slate-800">{pendingComplaints}</div>
+                            </div>
+                        </div>
+                        <div className="p-4 rounded-xl border bg-white border-slate-200 flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
+                                <CheckCheck size={20} />
+                            </div>
+                            <div>
+                                <div className="text-xs text-slate-500">Resolved Issues</div>
+                                <div className="text-xl font-semibold text-slate-800">{resolvedComplaints}</div>
+                            </div>
                         </div>
                     </div>
+
+                    {/* Big sections */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                        {/* Today's Mess Menu */}
+                        <div className="rounded-xl border border-slate-200 bg-white p-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <UtensilsCrossed className="text-slate-600" size={18} />
+                                    <h3 className="font-semibold text-slate-800">Today's Mess Menu</h3>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="text-xs text-slate-500">Day</div>
+                                    <select value={day} onChange={(e)=>setDay(e.target.value)} className="px-2 py-1 rounded border border-slate-300 text-xs">
+                                        {DAYS.map(d => <option key={d} value={d}>{d.toUpperCase()}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="text-xs text-slate-500 mt-1">Fresh meals prepared for you</div>
+                            <div className="mt-3 space-y-3">
+                                {['breakfast','lunch','dinner'].map(s => {
+                                    const its = week?.[day]?.[s]?.items ?? []
+                                    const label = s.charAt(0).toUpperCase()+s.slice(1)
+                                    return (
+                                        <div key={s} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                            <div className="font-medium text-slate-800">{label}</div>
+                                            <div className="text-xs text-slate-600 mt-1">
+                                                {its.length ? its.join ? its.join(', ') : its.map(x => typeof x === 'string' ? x : x.name).join(', ') : 'Not set'}
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                                {/* Capacity bar for selected slot */}
+                                <div className="pt-1">
+                                    <div className="flex items-center gap-2 text-xs text-slate-600">
+                                        <span>Capacity</span>
+                                        <select value={slot} onChange={(e)=>setSlot(e.target.value)} className="px-2 py-0.5 rounded border border-slate-300 text-xs">
+                                            <option value="breakfast">breakfast</option>
+                                            <option value="lunch">lunch</option>
+                                            <option value="dinner">dinner</option>
+                                        </select>
+                                        <span className="ml-auto">{cap.remaining} left / {cap.total}</span>
+                                    </div>
+                                    <div className="mt-2 h-2 w-full bg-slate-200 rounded-full overflow-hidden">
+                                        <div className="h-full bg-emerald-500" style={{ width: cap.total>0 ? `${Math.min(100, (100*(cap.total-cap.remaining))/cap.total)}%` : '0%' }} />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Recent Complaints */}
+                        <div className="rounded-xl border border-slate-200 bg-white p-4">
+                            <div className="flex items-center gap-2">
+                                <AlertCircle className="text-slate-600" size={18} />
+                                <h3 className="font-semibold text-slate-800">Recent Complaints</h3>
+                            </div>
+                            <div className="text-xs text-slate-500 mt-1">Latest issues reported</div>
+                            <div className="mt-4 text-slate-500 text-sm">No complaints yet</div>
+                        </div>
+                    </div>
+
+                    {/* Enrolled summary cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
+                            <div className="text-sm text-slate-500 mb-1">Enrolled Mess</div>
+                            {enrolledMess ? (
+                                <div>
+                                    <div className="font-semibold text-slate-800">{enrolledMess.name || '—'}</div>
+                                    {enrolledMess.adress && <div className="text-xs text-slate-600 mt-1">{enrolledMess.adress}</div>}
+                                    {enrolledMess.price && <div className="text-xs text-slate-600 mt-1">Price: ₹{enrolledMess.price}</div>}
+                                </div>
+                            ) : (
+                                <div className="text-slate-500">Not enrolled</div>
+                            )}
+                        </div>
+
+                        <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
+                            <div className="text-sm text-slate-500 mb-1">Enrolled Hostel</div>
+                            {enrolledHostel ? (
+                                <div>
+                                    <div className="font-semibold text-slate-800">{enrolledHostel.name || '—'}</div>
+                                    {enrolledHostel.adress && <div className="text-xs text-slate-600 mt-1">{enrolledHostel.adress}</div>}
+                                    {Array.isArray(enrolledHostel.accepted) && <div className="text-xs text-slate-600 mt-1">Members: {enrolledHostel.accepted.length}</div>}
+                                </div>
+                            ) : (
+                                <div className="text-slate-500">Not enrolled</div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                        <NavLink to="Mlist" className={({isActive}) => `rounded-xl border p-4 text-center text-sm font-medium transition-all ${isActive? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white border-slate-200 text-emerald-700 hover:bg-emerald-50'}`}>Mess List</NavLink>
+                        <NavLink to="Hlist" className={({isActive}) => `rounded-xl border p-4 text-center text-sm font-medium transition-all ${isActive? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white border-slate-200 text-emerald-700 hover:bg-emerald-50'}`}>Hostel List</NavLink>
+                        <NavLink to="announcements" className={({isActive}) => `rounded-xl border p-4 text-center text-sm font-medium transition-all ${isActive? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white border-slate-200 text-emerald-700 hover:bg-emerald-50'}`}>Announcements</NavLink>
+                        <NavLink to="complaints" className={({isActive}) => `rounded-xl border p-4 text-center text-sm font-medium transition-all ${isActive? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white border-slate-200 text-emerald-700 hover:bg-emerald-50'}`}>Complaints</NavLink>
+                        <NavLink to="msg" className={({isActive}) => `rounded-xl border p-4 text-center text-sm font-medium transition-all ${isActive? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white border-slate-200 text-emerald-700 hover:bg-emerald-50'}`}>Messages</NavLink>
+                    </div>
+                </div>
                 ) : (
-                    <div className="content-card">
+                    <div className="w-full max-w-7xl">
                         <Outlet />
                     </div>
                 )}
