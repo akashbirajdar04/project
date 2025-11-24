@@ -1,10 +1,11 @@
 import dotenv from "dotenv";
 import path from "path";
 import { connectDb } from "../db/index.js";
-import {  server } from "./app.js"; // import the same HTTP+Socket server
+import { server } from "./app.js"; // import the same HTTP+Socket server
 
 dotenv.config({ path: path.resolve("./.env") });
 
+console.log("DB URI:", process.env.DB ? "Defined" : "Undefined");
 connectDb()
   .then(() => {
     server.listen(3000, () => {
