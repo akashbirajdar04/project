@@ -1,4 +1,4 @@
-import { Chat,Message } from '../models/chat.js'
+import { Chat, Message } from '../models/chat.js'
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
@@ -15,7 +15,7 @@ import HostelStructureRoute from '../routes/hostel-structure-route.js';
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use('/',AuthRoute)
+app.use('/', AuthRoute)
 app.use('/', AnnouncementRoute)
 app.use('/', ComplaintRoute)
 app.use('/', MenuRoute)

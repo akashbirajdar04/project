@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../lib/api";
 import { toast } from "sonner";
+import { BedDouble, ArrowRightLeft, UserPlus, Loader2 } from "lucide-react";
 
 const HostelAllocation = () => {
   const hostelId = localStorage.getItem("Id");
@@ -56,69 +57,123 @@ const HostelAllocation = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-xl md:text-2xl font-semibold text-slate-800">Allocation</h1>
+    <div className="max-w-5xl mx-auto space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900">Room Allocation</h1>
+        <p className="text-slate-500 text-sm mt-1">Manage bed assignments and swaps</p>
+      </div>
 
       {loading ? (
-        <div className="text-slate-500">Loading...</div>
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+        </div>
       ) : (
-        <>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Assign Section */}
-          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-            <h2 className="font-semibold text-slate-900 mb-3">Assign a Bed</h2>
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
-              <select value={assign.blockName} onChange={(e)=>setAssign(a=>({ ...a, blockName:e.target.value, floorName:"", roomNumber:"", bedNumber:"" }))} className="md:col-span-3 px-3 py-2 rounded-lg border border-slate-300">
-                <option value="">Select Block</option>
-                {blocks.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
-              </select>
-              <select value={assign.floorName} onChange={(e)=>setAssign(a=>({ ...a, floorName:e.target.value, roomNumber:"", bedNumber:"" }))} className="md:col-span-3 px-3 py-2 rounded-lg border border-slate-300">
-                <option value="">Select Floor</option>
-                {floors.map(f => <option key={f.name} value={f.name}>{f.name}</option>)}
-              </select>
-              <select value={assign.roomNumber} onChange={(e)=>setAssign(a=>({ ...a, roomNumber:e.target.value, bedNumber:"" }))} className="md:col-span-3 px-3 py-2 rounded-lg border border-slate-300">
-                <option value="">Select Room</option>
-                {rooms.map(r => <option key={r.number} value={r.number}>{r.number}</option>)}
-              </select>
-              <select value={assign.bedNumber} onChange={(e)=>setAssign(a=>({ ...a, bedNumber:e.target.value }))} className="md:col-span-2 px-3 py-2 rounded-lg border border-slate-300">
-                <option value="">Bed</option>
-                {beds.map(bd => <option key={bd.number} value={bd.number}>{bd.number}</option>)}
-              </select>
-              <input value={assign.studentId} onChange={(e)=>setAssign(a=>({ ...a, studentId:e.target.value }))} placeholder="Student ID" className="md:col-span-6 px-3 py-2 rounded-lg border border-slate-300" />
-              <button onClick={onAssign} className="md:col-span-2 px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Assign</button>
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
+              <UserPlus className="w-5 h-5 text-blue-600" />
+              <h2 className="font-semibold text-slate-800">Assign Bed</h2>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1">Block</label>
+                  <select value={assign.blockName} onChange={(e) => setAssign(a => ({ ...a, blockName: e.target.value, floorName: "", roomNumber: "", bedNumber: "" }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Select Block</option>
+                    {blocks.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1">Floor</label>
+                  <select value={assign.floorName} onChange={(e) => setAssign(a => ({ ...a, floorName: e.target.value, roomNumber: "", bedNumber: "" }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Select Floor</option>
+                    {floors.map(f => <option key={f.name} value={f.name}>{f.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1">Room</label>
+                  <select value={assign.roomNumber} onChange={(e) => setAssign(a => ({ ...a, roomNumber: e.target.value, bedNumber: "" }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Select Room</option>
+                    {rooms.map(r => <option key={r.number} value={r.number}>{r.number}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1">Bed</label>
+                  <select value={assign.bedNumber} onChange={(e) => setAssign(a => ({ ...a, bedNumber: e.target.value }))} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Select Bed</option>
+                    {beds.map(bd => <option key={bd.number} value={bd.number}>{bd.number}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1">Student ID</label>
+                <input
+                  value={assign.studentId}
+                  onChange={(e) => setAssign(a => ({ ...a, studentId: e.target.value }))}
+                  placeholder="Enter Student ID"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <button
+                onClick={onAssign}
+                className="w-full py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-medium transition-colors shadow-sm mt-2"
+              >
+                Assign Student
+              </button>
             </div>
           </div>
 
           {/* Swap Section */}
-          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-            <h2 className="font-semibold text-slate-900 mb-3">Swap Beds</h2>
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
-              {(["a","b"]).map((key, idx) => (
-                <div key={key} className="md:col-span-6 grid grid-cols-1 md:grid-cols-12 gap-2">
-                  <div className="md:col-span-12 font-medium text-slate-700">{idx===0?"First":"Second"} Bed</div>
-                  <select value={swap[key].blockName} onChange={(e)=>setSwap(s=>({ ...s, [key]: { ...s[key], blockName:e.target.value, floorName:"", roomNumber:"", bedNumber:"" } }))} className="md:col-span-4 px-3 py-2 rounded-lg border border-slate-300">
-                    <option value="">Block</option>
-                    {blocks.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
-                  </select>
-                  <select value={swap[key].floorName} onChange={(e)=>setSwap(s=>({ ...s, [key]: { ...s[key], floorName:e.target.value, roomNumber:"", bedNumber:"" } }))} className="md:col-span-4 px-3 py-2 rounded-lg border border-slate-300">
-                    <option value="">Floor</option>
-                    {(blocks.find(b=>b.name===swap[key].blockName)?.floors||[]).map(f => <option key={f.name} value={f.name}>{f.name}</option>)}
-                  </select>
-                  <select value={swap[key].roomNumber} onChange={(e)=>setSwap(s=>({ ...s, [key]: { ...s[key], roomNumber:e.target.value, bedNumber:"" } }))} className="md:col-span-3 px-3 py-2 rounded-lg border border-slate-300">
-                    <option value="">Room</option>
-                    {(blocks.find(b=>b.name===swap[key].blockName)?.floors.find(f=>f.name===swap[key].floorName)?.rooms||[]).map(r => <option key={r.number} value={r.number}>{r.number}</option>)}
-                  </select>
-                  <select value={swap[key].bedNumber} onChange={(e)=>setSwap(s=>({ ...s, [key]: { ...s[key], bedNumber:e.target.value } }))} className="md:col-span-1 px-3 py-2 rounded-lg border border-slate-300">
-                    <option value="">Bed</option>
-                    {(blocks.find(b=>b.name===swap[key].blockName)?.floors.find(f=>f.name===swap[key].floorName)?.rooms.find(r=>r.number===swap[key].roomNumber)?.beds||[]).map(bd => <option key={bd.number} value={bd.number}>{bd.number}</option>)}
-                  </select>
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
+              <ArrowRightLeft className="w-5 h-5 text-blue-600" />
+              <h2 className="font-semibold text-slate-800">Swap Beds</h2>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {(["a", "b"]).map((key, idx) => (
+                <div key={key} className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold">{idx + 1}</span>
+                    <h3 className="text-sm font-medium text-slate-700">Student {idx === 0 ? "A" : "B"} Location</h3>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <select value={swap[key].blockName} onChange={(e) => setSwap(s => ({ ...s, [key]: { ...s[key], blockName: e.target.value, floorName: "", roomNumber: "", bedNumber: "" } }))} className="px-2 py-2 rounded-lg border border-slate-300 text-xs">
+                      <option value="">Block</option>
+                      {blocks.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
+                    </select>
+                    <select value={swap[key].floorName} onChange={(e) => setSwap(s => ({ ...s, [key]: { ...s[key], floorName: e.target.value, roomNumber: "", bedNumber: "" } }))} className="px-2 py-2 rounded-lg border border-slate-300 text-xs">
+                      <option value="">Floor</option>
+                      {(blocks.find(b => b.name === swap[key].blockName)?.floors || []).map(f => <option key={f.name} value={f.name}>{f.name}</option>)}
+                    </select>
+                    <select value={swap[key].roomNumber} onChange={(e) => setSwap(s => ({ ...s, [key]: { ...s[key], roomNumber: e.target.value, bedNumber: "" } }))} className="px-2 py-2 rounded-lg border border-slate-300 text-xs">
+                      <option value="">Room</option>
+                      {(blocks.find(b => b.name === swap[key].blockName)?.floors.find(f => f.name === swap[key].floorName)?.rooms || []).map(r => <option key={r.number} value={r.number}>{r.number}</option>)}
+                    </select>
+                    <select value={swap[key].bedNumber} onChange={(e) => setSwap(s => ({ ...s, [key]: { ...s[key], bedNumber: e.target.value } }))} className="px-2 py-2 rounded-lg border border-slate-300 text-xs">
+                      <option value="">Bed</option>
+                      {(blocks.find(b => b.name === swap[key].blockName)?.floors.find(f => f.name === swap[key].floorName)?.rooms.find(r => r.number === swap[key].roomNumber)?.beds || []).map(bd => <option key={bd.number} value={bd.number}>{bd.number}</option>)}
+                    </select>
+                  </div>
                 </div>
               ))}
-              <div className="md:col-span-12 flex justify-end">
-                <button onClick={onSwap} className="px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Swap</button>
-              </div>
+
+              <button
+                onClick={onSwap}
+                className="w-full py-2.5 rounded-lg bg-white border border-blue-600 text-blue-600 hover:bg-blue-50 font-medium transition-colors shadow-sm"
+              >
+                Swap Students
+              </button>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

@@ -1,9 +1,10 @@
-import { Mess } from "../models/user.module.js";
+import { Mess, Student } from "../models/user.module.js";
 
 export const acceptMessRequest = async (req, res) => {
   try {
     const { messId } = req.params;
     const { userId } = req.body;
+    console.log('AcceptMessRequest called with messId:', messId, 'userId:', userId);
     if (!userId) return res.status(400).json({ success: false, message: "userId required" });
 
     const mess = await Mess.findById(messId);
@@ -17,8 +18,17 @@ export const acceptMessRequest = async (req, res) => {
     }
     await mess.save({ validateBeforeSave: false });
 
+    // Update student's messid
+    const student = await Student.findById(userId);
+    if (student) {
+      student.messid = messId;
+      await student.save({ validateBeforeSave: false });
+      console.log('Student messid updated for', userId);
+    }
+
     res.json({ success: true, data: { requesters: mess.requesters, accepted: mess.accepted } });
   } catch (e) {
+    console.error('Error accepting mess request:', e);
     res.status(500).json({ success: false, message: e.message });
   }
 };

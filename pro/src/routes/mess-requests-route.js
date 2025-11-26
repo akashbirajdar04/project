@@ -1,5 +1,6 @@
 import express from "express";
 import { acceptMessRequest, rejectMessRequest, getMessAccepted, removeMessAccepted } from "../controllers/mess-requests-controller.js";
+import { sendMessRequest } from "../controllers/user-reg.js";
 // For dev, no auth; later add verifyjwt
 
 const router = express.Router();
@@ -9,5 +10,8 @@ router.post("/Profile/Messrequest/:messId/accept", acceptMessRequest);
 router.post("/Profile/Messrequest/:messId/reject", rejectMessRequest);
 router.get("/Profile/Messaccepted/:messId", getMessAccepted);
 router.delete("/Profile/Messaccepted/:messId/:userId", removeMessAccepted);
+
+// Send mess request (Generic route must be last to avoid conflict)
+router.post("/Profile/Messrequest/:id/:senderid", sendMessRequest);
 
 export default router;

@@ -1,19 +1,18 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom"
 import { useEffect, useMemo, useState } from "react"
 import api from "../../lib/api"
-import { UtensilsCrossed, CalendarDays, AlertCircle, CheckCheck } from "lucide-react"
+import { UtensilsCrossed, CalendarDays, AlertCircle, CheckCheck, Building2, MessageSquare, Megaphone } from "lucide-react"
 
 export const User = () => {
-    const [isOpen, setIsOpen] = useState(false)
     const userId = localStorage.getItem("Id")
     const location = useLocation()
-    const atHome = location.pathname === "/Profile"
+    const atHome = location.pathname === "/Profile" || location.pathname === "/Profile/"
 
     // Summary states
     const [enrolledMess, setEnrolledMess] = useState(null)
     const [enrolledHostel, setEnrolledHostel] = useState(null)
-    const DAYS = ["mon","tue","wed","thu","fri","sat","sun"]
-    const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay()-1
+    const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+    const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
     const [day, setDay] = useState(DAYS[todayIdx])
     const [slot, setSlot] = useState("lunch")
     const [week, setWeek] = useState({})
@@ -41,12 +40,12 @@ export const User = () => {
                         const list = Array.isArray(c.data?.data) ? c.data.data : []
                         setPendingComplaints(list.filter(x => x.status === 'pending').length)
                         setResolvedComplaints(list.filter(x => x.status === 'resolved').length)
-                    } catch (_) {}
+                    } catch (_) { }
                 }
                 // Menu week
                 const w = await api.get('/mess/menu/week')
                 setWeek(w.data?.data || {})
-            } catch (_) {}
+            } catch (_) { }
         }
         load()
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -57,7 +56,7 @@ export const User = () => {
             try {
                 const r = await api.get('/mess/capacity', { params: { day, slot } })
                 setCap(r.data?.data || { remaining: 0, total: 0 })
-            } catch (_) {}
+            } catch (_) { }
         }
         loadCap()
     }, [day, slot])
@@ -67,255 +66,209 @@ export const User = () => {
             try {
                 const r = await api.get('/mess/bookings/my', { params: { userId } })
                 setBookings(r.data?.data || [])
-            } catch (_) {}
+            } catch (_) { }
         }
         if (userId) loadBookings()
     }, [userId])
 
-    return (
-        <div className="w-screen h-screen min-h-screen flex bg-gradient-to-tr from-emerald-50 via-teal-50 to-cyan-50 overflow-hidden font-sans">
-            {/* SIDEBAR */}
-            <aside
-                className={`
-                    fixed md:static top-0 left-0 z-40 flex flex-col h-full w-64 
-                    bg-[#111a27] text-white border-r border-slate-200
-                    ${isOpen ? "translate-x-0" : "-translate-x-full"}
-                    md:translate-x-0 transition-transform duration-300 ease-in-out
-                    shadow-xl md:shadow-none
-                `}
-            >
-                {/* Dashboard Title */}
-                <div className="p-5 border-b border-slate-700 text-xl font-semibold text-emerald-300 tracking-wide select-none">
-                    Student Dashboard
-                    <button
-                        className="md:hidden float-right text-lg"
-                        onClick={() => setIsOpen(false)}
-                        aria-label="Close Menu"
-                    >✕</button>
-                </div>
-                <nav className="flex flex-col p-4 gap-2 flex-1">
-                    <NavLink
-                        to="Mlist"
-                        className={({ isActive }) =>
-                            `px-4 py-2 rounded-lg transition-colors ${isActive ? "bg-slate-800 text-white" : "text-slate-200 hover:bg-slate-800"}`
-                        }
-                    >
-                        Mess List
-                    </NavLink>
-                    <NavLink
-                        to="Hlist"
-                        className={({ isActive }) =>
-                            `px-4 py-2 rounded-lg transition-colors ${isActive ? "bg-slate-800 text-white" : "text-slate-200 hover:bg-slate-800"}`
-                        }
-                    >
-                        Hostel List
-                    </NavLink>
-                    {enrolledMess && enrolledMess._id && (
-                        <NavLink
-                            to={`Hlist/${enrolledMess._id}`}
-                            className={({ isActive }) =>
-                                `px-4 py-2 rounded-lg transition-colors ${isActive ? "bg-slate-800 text-white" : "text-slate-200 hover:bg-slate-800"}`
-                            }
-                        >
-                            My Mess
-                        </NavLink>
-                    )}
-                    {enrolledHostel && enrolledHostel._id && (
-                        <NavLink
-                            to={`Hlist/${enrolledHostel._id}`}
-                            className={({ isActive }) =>
-                                `px-4 py-2 rounded-lg transition-colors ${isActive ? "bg-slate-800 text-white" : "text-slate-200 hover:bg-slate-800"}`
-                            }
-                        >
-                            My Hostel
-                        </NavLink>
-                    )}
-                    <NavLink
-                        to="msg"
-                        className={({ isActive }) =>
-                            `px-4 py-2 rounded-lg transition-colors ${isActive ? "bg-slate-800 text-white" : "text-slate-200 hover:bg-slate-800"}`
-                        }
-                    >
-                        Messages
-                    </NavLink>
-                    <NavLink
-                        to="announcements"
-                        className={({ isActive }) =>
-                            `px-4 py-2 rounded-lg transition-colors ${isActive ? "bg-slate-800 text-white" : "text-slate-200 hover:bg-slate-800"}`
-                        }
-                    >
-                        Announcements
-                    </NavLink>
-                    <NavLink
-                        to="complaints"
-                        className={({ isActive }) =>
-                            `px-4 py-2 rounded-lg transition-colors ${isActive ? "bg-slate-800 text-white" : "text-slate-200 hover:bg-slate-800"}`
-                        }
-                    >
-                        Complaints
-                    </NavLink>
-                </nav>
-                <div className="px-4 py-3 border-t border-slate-700 text-xs text-center text-slate-400">
-                    © 2025 Hostel Admin
-                </div>
-            </aside>
-            {/* MOBILE TOGGLE */}
-            <button
-                className="md:hidden absolute top-5 left-5 bg-slate-200 text-slate-700 px-3 py-1 rounded shadow hover:bg-slate-300 z-50"
-                onClick={() => setIsOpen(true)}
-                aria-label="Open Menu"
-            >☰</button>
-            {/* MAIN CONTENT */}
-            <main className={`flex-1 h-full overflow-y-auto flex items-start ${atHome ? 'justify-center p-4 md:p-10' : 'justify-start pt-4 md:pt-10 pr-4 md:pr-10 pb-4 md:pb-10 pl-0 md:pl-0'} md:ml-64 transition-all duration-300`}>
-                {atHome ? (
-                <div className="w-full max-w-7xl bg-white rounded-2xl shadow-lg p-6 md:p-8 flex flex-col gap-6">
-                    <div className="border-b border-slate-200 pb-4">
-                        <div className="text-slate-500 text-sm">Welcome back! Here's what's happening today.</div>
-                        <h2 className="mt-1 text-xl md:text-2xl font-semibold text-slate-800">Dashboard</h2>
-                    </div>
+    const handleCancelMess = async () => {
+        if (!confirm("Are you sure you want to cancel your mess membership?")) return;
+        try {
+            // Assuming endpoint to leave mess
+            await api.delete(`/student/${userId}/mess`);
+            setEnrolledMess(null);
+            alert("Membership cancelled");
+        } catch (e) {
+            console.error(e);
+            alert("Failed to cancel membership");
+        }
+    };
 
-                    {/* KPI cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="p-4 rounded-xl border bg-white border-slate-200 flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
-                                <CalendarDays size={20} />
-                            </div>
+    const handleLeaveHostel = async () => {
+        if (!confirm("Are you sure you want to leave your hostel?")) return;
+        try {
+            // Assuming endpoint to leave hostel
+            await api.delete(`/student/${userId}/hostel`);
+            setEnrolledHostel(null);
+            alert("Left hostel successfully");
+        } catch (e) {
+            console.error(e);
+            alert("Failed to leave hostel");
+        }
+    };
+
+    if (!atHome) {
+        return <Outlet />
+    }
+
+    return (
+        <div className="max-w-6xl mx-auto space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900">Student Dashboard</h1>
+                    <p className="text-slate-500 text-sm mt-1">Welcome back! Here's what's happening today.</p>
+                </div>
+            </div>
+
+            {/* Enrollment Actions (Visible only if NOT enrolled) */}
+            {(!enrolledMess || !enrolledHostel) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {!enrolledMess && (
+                        <NavLink to="Mlist" className="group p-6 rounded-xl border border-blue-100 bg-blue-50 hover:bg-blue-100 transition-all flex items-center justify-between">
                             <div>
-                                <div className="text-xs text-slate-500">Total Hostels</div>
-                                <div className="text-xl font-semibold text-slate-800">{enrolledHostel ? 1 : 0}</div>
+                                <h3 className="font-bold text-blue-900 text-lg">Find a Mess</h3>
+                                <p className="text-blue-700 text-sm mt-1">Browse and join a mess facility</p>
                             </div>
-                        </div>
-                        <div className="p-4 rounded-xl border bg-white border-slate-200 flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-sky-50 text-sky-600">
+                            <div className="h-10 w-10 rounded-full bg-white text-blue-600 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
                                 <UtensilsCrossed size={20} />
                             </div>
+                        </NavLink>
+                    )}
+                    {!enrolledHostel && (
+                        <NavLink to="Hlist" className="group p-6 rounded-xl border border-indigo-100 bg-indigo-50 hover:bg-indigo-100 transition-all flex items-center justify-between">
                             <div>
-                                <div className="text-xs text-slate-500">Today's Bookings</div>
-                                <div className="text-xl font-semibold text-slate-800">{bookings.length}</div>
+                                <h3 className="font-bold text-indigo-900 text-lg">Find a Hostel</h3>
+                                <p className="text-indigo-700 text-sm mt-1">Browse and join a hostel</p>
                             </div>
-                        </div>
-                        <div className="p-4 rounded-xl border bg-white border-slate-200 flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-amber-50 text-amber-600">
-                                <AlertCircle size={20} />
+                            <div className="h-10 w-10 rounded-full bg-white text-indigo-600 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                                <Building2 size={20} />
                             </div>
-                            <div>
-                                <div className="text-xs text-slate-500">Pending Complaints</div>
-                                <div className="text-xl font-semibold text-slate-800">{pendingComplaints}</div>
-                            </div>
-                        </div>
-                        <div className="p-4 rounded-xl border bg-white border-slate-200 flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
-                                <CheckCheck size={20} />
-                            </div>
-                            <div>
-                                <div className="text-xs text-slate-500">Resolved Issues</div>
-                                <div className="text-xl font-semibold text-slate-800">{resolvedComplaints}</div>
-                            </div>
-                        </div>
-                    </div>
+                        </NavLink>
+                    )}
+                </div>
+            )}
 
-                    {/* Big sections */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                        {/* Today's Mess Menu */}
-                        <div className="rounded-xl border border-slate-200 bg-white p-4">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <UtensilsCrossed className="text-slate-600" size={18} />
-                                    <h3 className="font-semibold text-slate-800">Today's Mess Menu</h3>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <div className="text-xs text-slate-500">Day</div>
-                                    <select value={day} onChange={(e)=>setDay(e.target.value)} className="px-2 py-1 rounded border border-slate-300 text-xs">
-                                        {DAYS.map(d => <option key={d} value={d}>{d.toUpperCase()}</option>)}
-                                    </select>
+            {/* My Mess Section (Visible only if enrolled) */}
+            {enrolledMess && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                            <div className="flex items-center gap-2">
+                                <UtensilsCrossed className="text-blue-600" size={20} />
+                                <h3 className="font-semibold text-slate-800">My Mess: {enrolledMess.name}</h3>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-700 border border-green-200">
+                                    Active
+                                </span>
+                                <button onClick={handleCancelMess} className="text-xs font-medium text-red-600 hover:text-red-700 hover:underline">
+                                    Cancel Membership
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h4 className="font-medium text-slate-700">Today's Menu ({day.toUpperCase()})</h4>
+                                <div className="text-sm text-slate-500">
+                                    Off Days Taken: <span className="font-bold text-slate-800">0</span>/4
                                 </div>
                             </div>
-                            <div className="text-xs text-slate-500 mt-1">Fresh meals prepared for you</div>
-                            <div className="mt-3 space-y-3">
-                                {['breakfast','lunch','dinner'].map(s => {
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {['breakfast', 'lunch', 'dinner'].map(s => {
                                     const its = week?.[day]?.[s]?.items ?? []
-                                    const label = s.charAt(0).toUpperCase()+s.slice(1)
+                                    const label = s.charAt(0).toUpperCase() + s.slice(1)
                                     return (
-                                        <div key={s} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                                            <div className="font-medium text-slate-800">{label}</div>
-                                            <div className="text-xs text-slate-600 mt-1">
-                                                {its.length ? its.join ? its.join(', ') : its.map(x => typeof x === 'string' ? x : x.name).join(', ') : 'Not set'}
+                                        <div key={s} className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 hover:border-blue-100 transition-colors">
+                                            <div className="font-semibold text-slate-800 mb-2 pb-2 border-b border-slate-200">{label}</div>
+                                            <div className="text-sm text-slate-600 min-h-[60px]">
+                                                {its.length ? (
+                                                    <ul className="list-disc pl-4 space-y-1">
+                                                        {its.map((x, i) => (
+                                                            <li key={i}>{typeof x === 'string' ? x : x.name}</li>
+                                                        ))}
+                                                    </ul>
+                                                ) : (
+                                                    <span className="text-slate-400 italic">Not set</span>
+                                                )}
                                             </div>
                                         </div>
                                     )
                                 })}
-                                {/* Capacity bar for selected slot */}
-                                <div className="pt-1">
-                                    <div className="flex items-center gap-2 text-xs text-slate-600">
-                                        <span>Capacity</span>
-                                        <select value={slot} onChange={(e)=>setSlot(e.target.value)} className="px-2 py-0.5 rounded border border-slate-300 text-xs">
-                                            <option value="breakfast">breakfast</option>
-                                            <option value="lunch">lunch</option>
-                                            <option value="dinner">dinner</option>
-                                        </select>
-                                        <span className="ml-auto">{cap.remaining} left / {cap.total}</span>
-                                    </div>
-                                    <div className="mt-2 h-2 w-full bg-slate-200 rounded-full overflow-hidden">
-                                        <div className="h-full bg-emerald-500" style={{ width: cap.total>0 ? `${Math.min(100, (100*(cap.total-cap.remaining))/cap.total)}%` : '0%' }} />
-                                    </div>
-                                </div>
                             </div>
-                        </div>
-
-                        {/* Recent Complaints */}
-                        <div className="rounded-xl border border-slate-200 bg-white p-4">
-                            <div className="flex items-center gap-2">
-                                <AlertCircle className="text-slate-600" size={18} />
-                                <h3 className="font-semibold text-slate-800">Recent Complaints</h3>
-                            </div>
-                            <div className="text-xs text-slate-500 mt-1">Latest issues reported</div>
-                            <div className="mt-4 text-slate-500 text-sm">No complaints yet</div>
                         </div>
                     </div>
 
-                    {/* Enrolled summary cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
-                            <div className="text-sm text-slate-500 mb-1">Enrolled Mess</div>
-                            {enrolledMess ? (
-                                <div>
-                                    <div className="font-semibold text-slate-800">{enrolledMess.name || '—'}</div>
-                                    {enrolledMess.adress && <div className="text-xs text-slate-600 mt-1">{enrolledMess.adress}</div>}
-                                    {enrolledMess.price && <div className="text-xs text-slate-600 mt-1">Price: ₹{enrolledMess.price}</div>}
-                                </div>
-                            ) : (
-                                <div className="text-slate-500">Not enrolled</div>
-                            )}
+                    {/* Quick Stats for Mess */}
+                    <div className="space-y-4">
+                        <div className="p-5 rounded-xl border bg-white border-slate-200 shadow-sm">
+                            <div className="text-sm text-slate-500 font-medium mb-1">Monthly Fee</div>
+                            <div className="text-2xl font-bold text-slate-800">₹{enrolledMess.price || '0'}</div>
                         </div>
-
-                        <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
-                            <div className="text-sm text-slate-500 mb-1">Enrolled Hostel</div>
-                            {enrolledHostel ? (
-                                <div>
-                                    <div className="font-semibold text-slate-800">{enrolledHostel.name || '—'}</div>
-                                    {enrolledHostel.adress && <div className="text-xs text-slate-600 mt-1">{enrolledHostel.adress}</div>}
-                                    {Array.isArray(enrolledHostel.accepted) && <div className="text-xs text-slate-600 mt-1">Members: {enrolledHostel.accepted.length}</div>}
-                                </div>
-                            ) : (
-                                <div className="text-slate-500">Not enrolled</div>
-                            )}
+                        <div className="p-5 rounded-xl border bg-white border-slate-200 shadow-sm">
+                            <div className="text-sm text-slate-500 font-medium mb-1">Mess Location</div>
+                            <div className="text-base font-medium text-slate-800 flex items-start gap-2">
+                                <Building2 size={16} className="mt-1 text-slate-400" />
+                                {enrolledMess.address || 'No address'}
+                            </div>
                         </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                        <NavLink to="Mlist" className={({isActive}) => `rounded-xl border p-4 text-center text-sm font-medium transition-all ${isActive? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white border-slate-200 text-emerald-700 hover:bg-emerald-50'}`}>Mess List</NavLink>
-                        <NavLink to="Hlist" className={({isActive}) => `rounded-xl border p-4 text-center text-sm font-medium transition-all ${isActive? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white border-slate-200 text-emerald-700 hover:bg-emerald-50'}`}>Hostel List</NavLink>
-                        <NavLink to="announcements" className={({isActive}) => `rounded-xl border p-4 text-center text-sm font-medium transition-all ${isActive? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white border-slate-200 text-emerald-700 hover:bg-emerald-50'}`}>Announcements</NavLink>
-                        <NavLink to="complaints" className={({isActive}) => `rounded-xl border p-4 text-center text-sm font-medium transition-all ${isActive? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white border-slate-200 text-emerald-700 hover:bg-emerald-50'}`}>Complaints</NavLink>
-                        <NavLink to="msg" className={({isActive}) => `rounded-xl border p-4 text-center text-sm font-medium transition-all ${isActive? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white border-slate-200 text-emerald-700 hover:bg-emerald-50'}`}>Messages</NavLink>
                     </div>
                 </div>
-                ) : (
-                    <div className="w-full max-w-7xl">
-                        <Outlet />
+            )}
+
+            {/* My Hostel Section (Visible only if enrolled) */}
+            {enrolledHostel && (
+                <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                        <div className="flex items-center gap-2">
+                            <Building2 className="text-indigo-600" size={20} />
+                            <h3 className="font-semibold text-slate-800">My Hostel: {enrolledHostel.name}</h3>
+                        </div>
+                        <button onClick={handleLeaveHostel} className="text-xs font-medium text-red-600 hover:text-red-700 hover:underline">
+                            Leave Hostel
+                        </button>
                     </div>
-                )}
-            </main>
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <div className="text-sm text-slate-500 mb-1">Location</div>
+                            <div className="font-medium text-slate-800">{enrolledHostel.address || 'N/A'}</div>
+                        </div>
+                        <div>
+                            <div className="text-sm text-slate-500 mb-1">Contact</div>
+                            <div className="font-medium text-slate-800">{enrolledHostel.contact || 'N/A'}</div>
+                        </div>
+                        <div>
+                            <div className="text-sm text-slate-500 mb-1">Status</div>
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Resident
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* General Dashboard Widgets (Complaints, etc) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="p-5 rounded-xl border bg-white border-slate-200 shadow-sm flex items-center gap-4">
+                    <div className="p-3 rounded-lg bg-yellow-50 text-yellow-600">
+                        <AlertCircle size={24} />
+                    </div>
+                    <div>
+                        <div className="text-sm text-slate-500 font-medium">Pending Complaints</div>
+                        <div className="text-lg font-bold text-slate-800">{pendingComplaints}</div>
+                    </div>
+                </div>
+                <div className="p-5 rounded-xl border bg-white border-slate-200 shadow-sm flex items-center gap-4">
+                    <div className="p-3 rounded-lg bg-green-50 text-green-600">
+                        <CheckCheck size={24} />
+                    </div>
+                    <div>
+                        <div className="text-sm text-slate-500 font-medium">Resolved Complaints</div>
+                        <div className="text-lg font-bold text-slate-800">{resolvedComplaints}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <NavLink to="announcements" className="p-4 rounded-xl bg-purple-50 border border-purple-100 text-purple-700 hover:bg-purple-100 transition-colors flex flex-col items-center justify-center gap-2 text-center">
+                    <Megaphone size={24} />
+                    <span className="text-sm font-semibold">Announcements</span>
+                </NavLink>
+                <NavLink to="msg" className="p-4 rounded-xl bg-blue-50 border border-blue-100 text-blue-700 hover:bg-blue-100 transition-colors flex flex-col items-center justify-center gap-2 text-center">
+                    <MessageSquare size={24} />
+                    <span className="text-sm font-semibold">Messages</span>
+                </NavLink>
+            </div>
         </div>
     )
 }

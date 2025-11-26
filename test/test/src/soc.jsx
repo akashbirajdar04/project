@@ -62,15 +62,14 @@ export const PrivateChat = () => {
   };
 
   return (
-    <div className="flex flex-col h-full p-4 bg-gray-50">
+    <div className="flex flex-col h-full p-4 bg-slate-50">
       <h2 className="font-bold mb-2">Chat with {userId}</h2>
       <div className="flex-1 overflow-y-auto border p-2 mb-2 rounded bg-white flex flex-col gap-1">
         {messages.map((m, i) => (
           <div
             key={i}
-            className={`p-2 rounded max-w-[70%] ${
-              m.sender._id === currentUserId ? "bg-blue-200 self-end" : "bg-gray-200 self-start"
-            }`}
+            className={`p-2 rounded max-w-[70%] ${m.sender._id === currentUserId ? "bg-blue-100 text-blue-900 self-end" : "bg-slate-100 text-slate-900 self-start"
+              }`}
           >
             <b>{m.sender._id === currentUserId ? "You" : m.sender.name || m.sender.email}:</b>{" "}
             {m.message}

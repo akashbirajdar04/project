@@ -29,7 +29,7 @@ export const Profile = () => {
         return <Hostel />;
       default:
         return (
-          <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6">
+          <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
             <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
               <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100">
                 <svg
@@ -46,8 +46,8 @@ export const Profile = () => {
                   />
                 </svg>
               </div>
-              <h2 className="mt-4 text-2xl font-bold text-gray-900">Role Not Found</h2>
-              <p className="mt-2 text-gray-600">
+              <h2 className="mt-4 text-2xl font-bold text-slate-900">Role Not Found</h2>
+              <p className="mt-2 text-slate-600">
                 The system couldn't determine your user role. Please contact support.
               </p>
               <button
@@ -55,7 +55,7 @@ export const Profile = () => {
                   localStorage.clear();
                   navigate('/login');
                 }}
-                className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 Back to Login
               </button>
@@ -66,13 +66,8 @@ export const Profile = () => {
   };
 
   return (
-<<<<<<< Updated upstream
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-100 flex flex-col items-stretch justify-start p-0 font-sans">
-      <RenderComponent />
-=======
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-100">
+    <div className="w-full h-full">
       {getComponent()}
->>>>>>> Stashed changes
     </div>
   );
 };

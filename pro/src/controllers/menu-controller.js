@@ -1,21 +1,27 @@
 import { Menu } from "../models/menu.js";
 import { Booking } from "../models/booking.js";
 
-const days = ["mon","tue","wed","thu","fri","sat","sun"];
-const slots = ["breakfast","lunch","dinner"];
+const days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+const slots = ["breakfast", "lunch", "dinner"];
 
 export const getWeekMenu = async (_req, res) => {
   try {
+    console.log("Fetching week menu...");
     const docs = await Menu.find({}).lean();
+    console.log(`Found ${docs.length} menu entries`);
     // normalize to map day->slot
     const map = {};
     for (const d of days) {
       map[d] = {};
       for (const s of slots) map[d][s] = { items: [], capacity: 100 };
     }
-    for (const m of docs) map[m.day][m.slot] = { items: m.items, capacity: m.capacity, _id: m._id };
+    for (const m of docs) {
+      map[m.day][m.slot] = { items: m.items, capacity: m.capacity, _id: m._id };
+      console.log(`Mapped ${m.day} ${m.slot}: ${m.items.length} items`);
+    }
     res.json({ success: true, data: map });
   } catch (e) {
+    console.error("Error fetching menu:", e);
     res.status(500).json({ success: false, message: e.message });
   }
 };
@@ -23,14 +29,17 @@ export const getWeekMenu = async (_req, res) => {
 export const setMenu = async (req, res) => {
   try {
     const { day, slot, items = [], capacity = 100 } = req.body;
+    console.log(`Setting menu for ${day} ${slot}: ${items.length} items`);
     if (!days.includes(day) || !slots.includes(slot)) return res.status(400).json({ success: false, message: "Invalid day/slot" });
     const doc = await Menu.findOneAndUpdate(
       { day, slot },
       { day, slot, items, capacity },
       { upsert: true, new: true }
     );
+    console.log("Menu saved:", doc._id);
     res.json({ success: true, data: doc });
   } catch (e) {
+    console.error("Error setting menu:", e);
     res.status(500).json({ success: false, message: e.message });
   }
 };

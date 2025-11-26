@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../lib/api";
 import { toast } from "sonner";
+import { AlertCircle, CheckCircle, Clock, MessageSquare, Send, Loader2 } from "lucide-react";
 
 export const Complaints = () => {
   const [items, setItems] = useState([]);
@@ -58,68 +59,112 @@ export const Complaints = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl md:text-2xl font-semibold text-slate-800">Complaints</h1>
+    <div className="max-w-5xl mx-auto space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900">Complaints & Support</h1>
+        <p className="text-slate-500 text-sm mt-1">Raise tickets for any issues you face</p>
+      </div>
 
-      <form onSubmit={onCreate} className="grid grid-cols-1 md:grid-cols-12 gap-3 bg-white border border-slate-200 rounded-xl p-4">
-        <select
-          value={form.category}
-          onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-          className="md:col-span-3 px-3 py-2 rounded-lg border border-slate-300"
-        >
-          <option value="room">Room</option>
-          <option value="plumbing">Plumbing</option>
-          <option value="electricity">Electricity</option>
-          <option value="housekeeping">Housekeeping</option>
-          <option value="food">Food</option>
-          <option value="other">Other</option>
-        </select>
-        <input
-          value={form.description}
-          onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-          placeholder="Describe the issue"
-          className="md:col-span-7 px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500"
-          required
-        />
-        <button type="submit" className="md:col-span-2 px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Submit</button>
-      </form>
+      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        <h3 className="text-lg font-semibold text-slate-800 mb-4">Create New Ticket</h3>
+        <form onSubmit={onCreate} className="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <div className="md:col-span-3">
+            <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
+            <select
+              value={form.category}
+              onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+              className="block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 border px-3"
+            >
+              <option value="room">Room</option>
+              <option value="plumbing">Plumbing</option>
+              <option value="electricity">Electricity</option>
+              <option value="housekeeping">Housekeeping</option>
+              <option value="food">Food</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div className="md:col-span-7">
+            <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+            <input
+              value={form.description}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              placeholder="Describe the issue in detail..."
+              className="block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 border px-3"
+              required
+            />
+          </div>
+          <div className="md:col-span-2 flex items-end">
+            <button
+              type="submit"
+              className="w-full flex justify-center items-center px-4 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-medium transition-colors shadow-sm"
+            >
+              <Send className="w-4 h-4 mr-2" />
+              Submit
+            </button>
+          </div>
+        </form>
+      </div>
 
-      <div className="grid gap-3">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-slate-800">Your Tickets</h3>
         {loading ? (
-          <div className="text-slate-500">Loading...</div>
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+          </div>
         ) : items.length === 0 ? (
-          <div className="text-slate-500">No tickets</div>
+          <div className="text-center py-12 bg-white rounded-xl border border-slate-200 border-dashed">
+            <AlertCircle className="mx-auto h-10 w-10 text-slate-300 mb-3" />
+            <p className="text-slate-500">No tickets found</p>
+          </div>
         ) : (
-          items.map((t) => (
-            <div key={t._id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-slate-900 capitalize">{t.category}</span>
-                <span className="text-xs rounded px-2 py-0.5 border bg-slate-50 border-slate-200 text-slate-700">
-                  {t.status?.replace("_", " ")}
-                </span>
-              </div>
-              <p className="text-slate-700 mt-1">{t.description}</p>
-              <div className="text-xs text-slate-500 mt-2">{new Date(t.createdAt).toLocaleString()}</div>
+          <div className="grid gap-4">
+            {items.map((t) => (
+              <div key={t._id} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${t.status === 'resolved' ? 'bg-green-100 text-green-600' :
+                        t.status === 'closed' ? 'bg-slate-100 text-slate-600' :
+                          'bg-blue-100 text-blue-600'
+                      }`}>
+                      {t.status === 'resolved' ? <CheckCircle size={20} /> : <Clock size={20} />}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-900 capitalize">{t.category} Issue</h4>
+                      <p className="text-xs text-slate-500">{new Date(t.createdAt).toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-medium border capitalize ${t.status === 'resolved' ? 'bg-green-50 text-green-700 border-green-200' :
+                      t.status === 'closed' ? 'bg-slate-50 text-slate-700 border-slate-200' :
+                        'bg-blue-50 text-blue-700 border-blue-200'
+                    }`}>
+                    {t.status?.replace("_", " ")}
+                  </span>
+                </div>
 
-              {/* Status control */}
-              <div className="mt-3 flex items-center gap-2">
-                <label className="text-xs text-slate-600">Update status:</label>
-                <select
-                  defaultValue={t.status}
-                  onChange={(e)=>updateStatus(t._id, e.target.value)}
-                  className="px-2 py-1 rounded border border-slate-300 text-sm"
-                >
-                  <option value="open">open</option>
-                  <option value="in_progress">in_progress</option>
-                  <option value="resolved">resolved</option>
-                  <option value="closed">closed</option>
-                </select>
-              </div>
+                <p className="text-slate-700 mb-4 ml-12">{t.description}</p>
 
-              {/* Feedback */}
-              <FeedbackSection ticket={t} onSubmit={submitFeedback} />
-            </div>
-          ))
+                <div className="ml-12 pt-4 border-t border-slate-100">
+                  {/* Status control - simplified for demo, usually admin only */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Update Status:</label>
+                    <select
+                      defaultValue={t.status}
+                      onChange={(e) => updateStatus(t._id, e.target.value)}
+                      className="px-2 py-1 rounded border border-slate-300 text-xs bg-slate-50 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="open">Open</option>
+                      <option value="in_progress">In Progress</option>
+                      <option value="resolved">Resolved</option>
+                      <option value="closed">Closed</option>
+                    </select>
+                  </div>
+
+                  {/* Feedback */}
+                  <FeedbackSection ticket={t} onSubmit={submitFeedback} />
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>
@@ -133,28 +178,36 @@ const FeedbackSection = ({ ticket, onSubmit }) => {
   const isLocked = ticket.status !== 'resolved' && ticket.status !== 'closed';
 
   return (
-    <div className="mt-3 border-t border-slate-100 pt-3">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-slate-800">Feedback</span>
+    <div className="bg-slate-50 rounded-lg p-4">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-slate-800">
+          <MessageSquare size={16} className="text-slate-500" />
+          Feedback
+        </div>
         {ticket.feedback && (
-          <span className="text-xs text-slate-500">Saved</span>
+          <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-200">Saved</span>
         )}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
-        <select value={rating} onChange={(e)=>setRating(Number(e.target.value))} disabled={isLocked} className="md:col-span-2 px-2 py-2 rounded-lg border border-slate-300">
-          {[1,2,3,4,5].map(n => <option key={n} value={n}>{n} ⭐</option>)}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+        <select
+          value={rating}
+          onChange={(e) => setRating(Number(e.target.value))}
+          disabled={isLocked}
+          className="md:col-span-2 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500"
+        >
+          {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} ⭐</option>)}
         </select>
         <input
           value={comment}
-          onChange={(e)=>setComment(e.target.value)}
+          onChange={(e) => setComment(e.target.value)}
           disabled={isLocked}
-          placeholder={isLocked ? "Feedback enabled after resolved/closed" : "Write your feedback"}
-          className="md:col-span-8 px-3 py-2 rounded-lg border border-slate-300"
+          placeholder={isLocked ? "Feedback enabled after resolution" : "Write your feedback..."}
+          className="md:col-span-8 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500"
         />
         <button
-          onClick={()=>onSubmit(ticket._id, rating, comment)}
+          onClick={() => onSubmit(ticket._id, rating, comment)}
           disabled={!canSend || isLocked}
-          className="md:col-span-2 px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="md:col-span-2 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
         >
           Submit
         </button>

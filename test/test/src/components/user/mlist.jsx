@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../lib/api";
-import { UtensilsCrossed } from "lucide-react";
+import { UtensilsCrossed, MapPin, IndianRupee } from "lucide-react";
 
 export const Mlist = () => {
   const [getlist, setGetlist] = useState([]);
@@ -18,7 +18,7 @@ export const Mlist = () => {
           try {
             const m = await api.get(`/student/${userId}/mess`);
             setEnrolledMessId(m.data?.data?._id || null);
-          } catch (_) {}
+          } catch (_) { }
         }
       } catch (error) {
         console.error("Error fetching mess list:", error);
@@ -31,61 +31,80 @@ export const Mlist = () => {
   }, []);
 
   return (
-    <div className="pt-4 md:pt-8 pr-4 md:pr-8 pb-4 md:pb-8 pl-0">
-      <div className="mb-5">
-        <div className="text-slate-500 text-sm">Choose your preferred mess</div>
-        <h1 className="text-2xl font-bold text-slate-800">Mess</h1>
+    <div className="max-w-5xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-slate-800">Mess Facilities</h1>
+        <p className="text-slate-500 mt-1">Choose your preferred dining facility</p>
       </div>
 
       {loading ? (
-        <div className="text-slate-500">Loading...</div>
+        <div className="flex items-center justify-center h-40">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
       ) : getlist.length > 0 ? (
-        <div className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {getlist.map((res) => {
             const isOtherWhileEnrolled = enrolledMessId && enrolledMessId !== res._id;
-            const CardInner = (
-              <div className={`rounded-2xl border border-slate-200 bg-white p-5 ${isOtherWhileEnrolled ? 'opacity-60 cursor-not-allowed' : 'shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-emerald-200 hover:ring-1 hover:ring-emerald-100 transition'}`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
-                      <UtensilsCrossed size={18} />
-                    </div>
-                    <div>
-                      <div className="text-lg font-semibold text-slate-800">{res.name || 'Unnamed Mess'}</div>
-                      <div className="text-sm text-slate-500">{res.address || 'Address not provided'}</div>
-                    </div>
+            const isEnrolled = enrolledMessId === res._id;
+
+            const CardContent = (
+              <div className={`h-full flex flex-col bg-white rounded-xl border border-slate-200 p-5 transition-all duration-200 ${!isOtherWhileEnrolled ? 'hover:shadow-lg hover:border-blue-200 hover:-translate-y-1' : 'opacity-60'}`}>
+                <div className="flex items-start justify-between mb-4">
+                  <div className="p-3 rounded-lg bg-orange-50 text-orange-600">
+                    <UtensilsCrossed size={24} />
                   </div>
-                  <div className="flex items-center gap-2">
-                    {res.price && (
-                      <span className="text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
-                        ₹{res.price}
-                      </span>
-                    )}
-                    {isOtherWhileEnrolled && (
-                      <span className="text-xs font-medium text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">Already enrolled</span>
+                  {isEnrolled && (
+                    <span className="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 rounded-full">
+                      Enrolled
+                    </span>
+                  )}
+                </div>
+
+                <h3 className="text-lg font-bold text-slate-800 mb-1">{res.name || 'Unnamed Mess'}</h3>
+
+                <div className="flex items-start gap-2 text-sm text-slate-500 mb-4 flex-1">
+                  <MapPin size={16} className="mt-0.5 shrink-0" />
+                  <span className="line-clamp-2">{res.address || 'Address not provided'}</span>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-1 font-medium text-slate-700">
+                    {res.price ? (
+                      <>
+                        <IndianRupee size={14} />
+                        <span>{res.price}/month</span>
+                      </>
+                    ) : (
+                      <span className="text-slate-400">Price not set</span>
                     )}
                   </div>
+                  {!isOtherWhileEnrolled && (
+                    <span className="text-blue-600 font-medium group-hover:underline">View Details →</span>
+                  )}
                 </div>
               </div>
             );
 
             return isOtherWhileEnrolled ? (
-              <div key={res._id}>{CardInner}</div>
+              <div key={res._id} className="cursor-not-allowed">{CardContent}</div>
             ) : (
               <Link
                 key={res._id}
-                to={`/Profile/Hlist/${res._id}`}
-                className="block rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-emerald-200 hover:ring-1 hover:ring-emerald-100 transition p-5"
+                to={`/Profile/Mlist/${res._id}`}
+                className="block group"
               >
-                {CardInner}
+                {CardContent}
               </Link>
             );
           })}
         </div>
       ) : (
-        <div className="text-slate-500">No mess found.</div>
+        <div className="text-center py-12 bg-white rounded-xl border border-slate-200 border-dashed">
+          <UtensilsCrossed size={48} className="mx-auto text-slate-300 mb-4" />
+          <h3 className="text-lg font-medium text-slate-900">No mess facilities found</h3>
+          <p className="text-slate-500">Check back later for new listings.</p>
+        </div>
       )}
     </div>
   );
 };
-

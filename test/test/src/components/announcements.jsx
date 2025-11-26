@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../lib/api";
 import { toast } from "sonner";
-import { Search, Bell, Send, Calendar, AlertTriangle, Loader2 } from "lucide-react";
+import { Search, Bell, Send, Loader2 } from "lucide-react";
 
 export const Announcements = () => {
   const [items, setItems] = useState([]);
@@ -52,36 +52,39 @@ export const Announcements = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-5xl mx-auto">
       {/* Header with title and filters */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
+          <div className="p-2.5 bg-blue-100 rounded-xl text-blue-600">
             <Bell className="w-6 h-6" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Announcements</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Announcements</h1>
+            <p className="text-slate-500 text-sm">Stay updated with latest news</p>
+          </div>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
           <div className="relative flex-1">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+              <Search className="h-5 w-5 text-slate-400" />
             </div>
             <input
               type="text"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search announcements..."
-              className="focus:ring-indigo-500 focus:border-indigo-500 flex-1 block w-full rounded-md sm:text-sm border-gray-300 border p-2"
+              placeholder="Search..."
+              className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg leading-5 bg-white placeholder-slate-400 focus:outline-none focus:placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
             />
           </div>
-          
+
           <select
             value={scopeFilter}
             onChange={(e) => setScopeFilter(e.target.value)}
-            className="block w-full md:w-48 px-3 py-2 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className="block w-full md:w-40 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg"
           >
-            <option value="all">All Announcements</option>
+            <option value="all">All</option>
             <option value="global">Global</option>
             <option value="hostel">Hostel</option>
             <option value="block">Block</option>
@@ -92,38 +95,36 @@ export const Announcements = () => {
 
       {/* Create Announcement Form */}
       {(role === "warden" || role === "hostelowner" || role === "messowner") && (
-        <div className="bg-white shadow overflow-hidden rounded-lg mb-8">
-          <div className="px-6 py-5 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Create New Announcement</h3>
+        <div className="bg-white shadow-sm border border-slate-200 rounded-xl mb-8 overflow-hidden">
+          <div className="px-6 py-4 bg-slate-50 border-b border-slate-100">
+            <h3 className="text-lg font-semibold text-slate-800">Create New Announcement</h3>
           </div>
           <form onSubmit={onCreate} className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
               <div className="md:col-span-5">
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-1">
                   Title
                 </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <input
-                    type="text"
-                    id="title"
-                    value={form.title}
-                    onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                    className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-4 pr-12 py-2 sm:text-sm border-gray-300 rounded-md border"
-                    placeholder="Announcement title"
-                    required
-                  />
-                </div>
+                <input
+                  type="text"
+                  id="title"
+                  value={form.title}
+                  onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                  className="block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 border px-3"
+                  placeholder="Announcement title"
+                  required
+                />
               </div>
-              
+
               <div className="md:col-span-3">
-                <label htmlFor="scope" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="scope" className="block text-sm font-medium text-slate-700 mb-1">
                   Scope
                 </label>
                 <select
                   id="scope"
                   value={form.scope}
                   onChange={(e) => setForm((f) => ({ ...f, scope: e.target.value }))}
-                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                  className="block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 border px-3"
                 >
                   <option value="global">Global</option>
                   <option value="hostel">Hostel</option>
@@ -131,24 +132,24 @@ export const Announcements = () => {
                   <option value="mess">Mess</option>
                 </select>
               </div>
-              
+
               <div className="md:col-span-4">
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="message" className="block text-sm font-medium text-slate-700 mb-1">
                   Message
                 </label>
-                <div className="mt-1 flex rounded-md shadow-sm">
+                <div className="flex rounded-lg shadow-sm">
                   <input
                     type="text"
                     id="message"
                     value={form.body}
                     onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))}
-                    className="flex-1 block w-full rounded-r-md sm:text-sm border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Enter announcement message"
+                    className="flex-1 block w-full rounded-l-lg border-slate-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm border px-3 py-2.5"
+                    placeholder="Enter message"
                     required
                   />
                   <button
                     type="submit"
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-r-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                   >
                     <Send className="-ml-1 mr-2 h-4 w-4" />
                     Publish
@@ -161,65 +162,51 @@ export const Announcements = () => {
       )}
 
       {/* Announcements List */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <h3 className="text-lg font-medium leading-6 text-gray-900">Recent Announcements</h3>
-        </div>
-        
+      <div className="space-y-4">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="h-10 w-10 text-indigo-600 animate-spin" />
-            <p className="mt-2 text-sm text-gray-500">Loading announcements...</p>
+          <div className="flex flex-col items-center justify-center py-12 bg-white rounded-xl border border-slate-200 border-dashed">
+            <Loader2 className="h-10 w-10 text-blue-600 animate-spin" />
+            <p className="mt-2 text-sm text-slate-500">Loading announcements...</p>
           </div>
         ) : items.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100">
-              <Bell className="h-6 w-6 text-indigo-600" />
+          <div className="text-center py-16 bg-white rounded-xl border border-slate-200 border-dashed">
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-slate-100">
+              <Bell className="h-6 w-6 text-slate-400" />
             </div>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No announcements</h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <h3 className="mt-2 text-sm font-medium text-slate-900">No announcements</h3>
+            <p className="mt-1 text-sm text-slate-500">
               {q ? 'No announcements match your search.' : 'Get started by creating a new announcement.'}
             </p>
           </div>
         ) : (
-          <ul className="divide-y divide-gray-200">
+          <div className="grid gap-4">
             {items.map((item) => (
-              <li key={item._id} className="hover:bg-gray-50 transition-colors duration-150">
-                <div className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                        <Bell className="h-5 w-5 text-indigo-600" />
+              <div key={item._id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow duration-200">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                      <Bell className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-semibold text-slate-900">
+                          {item.postedBy?.name || 'System'}
+                        </span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 capitalize">
+                          {item.scope}
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          • {new Date(item.createdAt).toLocaleDateString()}
+                        </span>
                       </div>
-                      <div className="ml-4">
-                        <div className="flex items-center">
-                          <p className="text-sm font-medium text-indigo-600 truncate">
-                            {item.postedBy?.name || 'System'}
-                          </p>
-                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                            {item.scope.charAt(0).toUpperCase() + item.scope.slice(1)}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-500">
-                          {new Date(item.createdAt).toLocaleString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
-                      </div>
+                      <h4 className="text-base font-bold text-slate-800 mb-1">{item.title}</h4>
+                      <p className="text-sm text-slate-600 whitespace-pre-line leading-relaxed">{item.body}</p>
                     </div>
                   </div>
-                  <div className="mt-2">
-                    <h4 className="text-lg font-semibold text-gray-900">{item.title}</h4>
-                    <p className="mt-1 text-sm text-gray-600 whitespace-pre-line">{item.body}</p>
-                  </div>
                 </div>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
     </div>
