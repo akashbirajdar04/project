@@ -1,22 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../lib/api";
 import { toast } from "sonner";
+import { Calendar, Clock, Plus, Trash2, Save, Utensils, Flame, AlertTriangle, Loader2 } from "lucide-react";
 
-const DAYS = ["mon","tue","wed","thu","fri","sat","sun"];
-const SLOTS = ["breakfast","lunch","dinner"];
+const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+const SLOTS = ["breakfast", "lunch", "dinner"];
 
 const MessMenuManage = () => {
   const [week, setWeek] = useState({});
-  const [day, setDay] = useState(DAYS[new Date().getDay() === 0 ? 6 : new Date().getDay()-1]);
+  const [day, setDay] = useState(DAYS[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1]);
   const [slot, setSlot] = useState("lunch");
   const [capacity, setCapacity] = useState(100);
   const [newItem, setNewItem] = useState({ name: "", allergens: "", calories: "" });
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const items = useMemo(() => week?.[day]?.[slot]?.items ?? [], [week, day, slot]);
 
   const loadWeek = async () => {
     try {
+      setLoading(true);
       const res = await api.get("/mess/menu/week");
       const data = res.data?.data ?? {};
       setWeek(data);
@@ -24,7 +27,9 @@ const MessMenuManage = () => {
       setCapacity(cap);
     } catch (e) {
       console.error(e);
-      toast.error("Failed to load menu");
+      // toast.error("Failed to load menu");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,7 +69,7 @@ const MessMenuManage = () => {
         items,
         capacity: Number(capacity) || 100,
       });
-      toast.success("Menu saved");
+      toast.success("Menu saved successfully");
       await loadWeek();
     } catch (e) {
       toast.error(e?.response?.data?.message || "Save failed");
@@ -73,61 +78,167 @@ const MessMenuManage = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h1 className="text-xl md:text-2xl font-semibold text-slate-800">Manage Weekly Menu</h1>
-        <div className="flex gap-2">
-          <select value={day} onChange={(e)=>setDay(e.target.value)} className="px-3 py-2 rounded-lg border border-slate-300">
-            {DAYS.map(d => <option key={d} value={d}>{d.toUpperCase()}</option>)}
-          </select>
-          <select value={slot} onChange={(e)=>setSlot(e.target.value)} className="px-3 py-2 rounded-lg border border-slate-300">
-            {SLOTS.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <input
-            type="number"
-            min={0}
-            value={capacity}
-            onChange={(e)=>setCapacity(e.target.value)}
-            className="w-28 px-3 py-2 rounded-lg border border-slate-300"
-            placeholder="Capacity"
-            aria-label="Capacity"
-          />
-          <button onClick={onSave} disabled={saving} className="px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50">{saving ? "Saving..." : "Save"}</button>
+    <div className="max-w-5xl mx-auto space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Manage Menu</h1>
+          <p className="text-slate-500 text-sm mt-1">Plan meals and manage capacity</p>
+        </div>
+
+        <div className="flex flex-wrap gap-3 items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
+          <div className="relative">
+            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <select
+              value={day}
+              onChange={(e) => setDay(e.target.value)}
+              className="pl-9 pr-8 py-2 rounded-lg border border-slate-300 bg-white text-sm focus:ring-blue-500 focus:border-blue-500 uppercase font-medium"
+            >
+              {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+
+          <div className="relative">
+            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <select
+              value={slot}
+              onChange={(e) => setSlot(e.target.value)}
+              className="pl-9 pr-8 py-2 rounded-lg border border-slate-300 bg-white text-sm focus:ring-blue-500 focus:border-blue-500 capitalize font-medium"
+            >
+              {SLOTS.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+
+          <div className="h-8 w-px bg-slate-200 mx-1"></div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-slate-600">Capacity:</span>
+            <input
+              type="number"
+              min={0}
+              value={capacity}
+              onChange={(e) => setCapacity(e.target.value)}
+              className="w-20 px-2 py-2 rounded-lg border border-slate-300 text-sm text-center font-medium"
+            />
+          </div>
+
+          <button
+            onClick={onSave}
+            disabled={saving}
+            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-70 font-medium transition-colors ml-auto"
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-        <h3 className="font-semibold text-slate-900 mb-3">Items for {day.toUpperCase()} • {slot}</h3>
-        {items.length === 0 ? (
-          <div className="text-slate-500">No items set</div>
-        ) : (
-          <ul className="divide-y divide-slate-100">
-            {items.map((it, idx) => (
-              <li key={idx} className="py-2 flex items-center justify-between">
-                <div>
-                  <div className="font-medium text-slate-800">{it.name || String(it)}</div>
-                  {Array.isArray(it.allergens) && it.allergens.length > 0 && (
-                    <div className="text-xs text-slate-500">Allergens: {it.allergens.join(", ")}</div>
-                  )}
-                  {it.calories ? (
-                    <div className="text-xs text-slate-500">Calories: {it.calories}</div>
-                  ) : null}
-                </div>
-                <button onClick={()=>removeItem(idx)} className="px-3 py-1 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50">Remove</button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Add Item Form */}
+        <div className="lg:col-span-1">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden sticky top-6">
+            <div className="px-5 py-3 bg-slate-50 border-b border-slate-100 font-semibold text-slate-800">
+              Add New Item
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1">Item Name</label>
+                <input
+                  value={newItem.name}
+                  onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                  placeholder="e.g. Paneer Butter Masala"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1">Allergens (Optional)</label>
+                <input
+                  value={newItem.allergens}
+                  onChange={(e) => setNewItem({ ...newItem, allergens: e.target.value })}
+                  placeholder="e.g. Dairy, Nuts"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1">Calories (Optional)</label>
+                <input
+                  value={newItem.calories}
+                  onChange={(e) => setNewItem({ ...newItem, calories: e.target.value })}
+                  placeholder="e.g. 350"
+                  type="number"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <button
+                onClick={onAddItem}
+                className="w-full py-2.5 rounded-lg bg-slate-800 text-white hover:bg-slate-900 font-medium transition-colors flex items-center justify-center"
+              >
+                <Plus className="w-4 h-4 mr-2" /> Add Item
+              </button>
+            </div>
+          </div>
+        </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-        <h3 className="font-semibold text-slate-900 mb-3">Add Item</h3>
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-          <input value={newItem.name} onChange={(e)=>setNewItem({...newItem, name: e.target.value})} placeholder="Item name" className="md:col-span-4 px-3 py-2 rounded-lg border border-slate-300" />
-          <input value={newItem.allergens} onChange={(e)=>setNewItem({...newItem, allergens: e.target.value})} placeholder="Allergens (comma-separated)" className="md:col-span-5 px-3 py-2 rounded-lg border border-slate-300" />
-          <input value={newItem.calories} onChange={(e)=>setNewItem({...newItem, calories: e.target.value})} placeholder="Calories" className="md:col-span-2 px-3 py-2 rounded-lg border border-slate-300" />
-          <button onClick={onAddItem} className="md:col-span-1 px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Add</button>
+        {/* Items List */}
+        <div className="lg:col-span-2">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden min-h-[400px]">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="font-semibold text-slate-800 flex items-center capitalize">
+                <Utensils className="w-4 h-4 mr-2 text-blue-600" />
+                {day} • {slot} Menu
+              </h3>
+              <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                {items.length} items
+              </span>
+            </div>
+
+            <div className="p-2">
+              {items.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+                  <Utensils className="w-12 h-12 mb-3 opacity-20" />
+                  <p>No items added yet</p>
+                  <p className="text-xs mt-1">Use the form to add items to this slot</p>
+                </div>
+              ) : (
+                <ul className="space-y-2">
+                  {items.map((it, idx) => (
+                    <li key={idx} className="group flex items-center justify-between p-4 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
+                      <div>
+                        <div className="font-semibold text-slate-800 text-base">{it.name || String(it)}</div>
+                        <div className="flex items-center gap-3 mt-1">
+                          {Array.isArray(it.allergens) && it.allergens.length > 0 && (
+                            <div className="flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100">
+                              <AlertTriangle size={10} />
+                              {it.allergens.join(", ")}
+                            </div>
+                          )}
+                          {it.calories ? (
+                            <div className="flex items-center gap-1 text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                              <Flame size={10} />
+                              {it.calories} kcal
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeItem(idx)}
+                        className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

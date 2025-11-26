@@ -6,6 +6,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Login } from "./components/login.jsx";
 import { Register } from "./assets/register.jsx";
 import { Profile } from "./components/Profile.jsx";
+import Layout from "./components/Layout.jsx";
 
 // Hostel
 import { Hostel } from "./components/hostel/hostel.jsx";
@@ -27,6 +28,7 @@ import { Mlist } from "./components/user/mlist.jsx";
 import { Hlist } from "./components/user/Hlist.jsx";
 import { User } from "./components/user/user.jsx";
 import Req from "./components/user/req.jsx";
+import { MessReq } from "./components/user/mess_req.jsx";
 import { Acceptedreq } from "./components/user/acepted_req.jsx";
 import { Msg } from "./components/user/msg.jsx";
 import MenuView from "./components/user/menu.jsx";
@@ -41,43 +43,46 @@ function App() {
   return (
     <Routes>
       {/* Public */}
-      <Route path="/" element={<Index/>} />
+      <Route path="/" element={<Index />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
       {/* Protected App area */}
-      <Route path="/Profile" element={<Profile />}>
-        {/* Mess owner routes */}
-        <Route path="Messrequests" element={<Messrequest />} />
-        <Route path="Messprofile" element={<Messprofile />} />
-        <Route path="mess-menu" element={<MessMenuManage />} />
-        <Route path="Messaccepted" element={<AcceptedMembers />} />
-        <Route path="Mlist" element={<Mlist />} />
+      <Route element={<Layout />}>
+        <Route path="/Profile" element={<Profile />}>
+          {/* Mess owner routes */}
+          <Route path="Messrequests" element={<Messrequest />} />
+          <Route path="Messprofile" element={<Messprofile />} />
+          <Route path="mess-menu" element={<MessMenuManage />} />
+          <Route path="Messaccepted" element={<AcceptedMembers />} />
+          <Route path="Mlist" element={<Mlist />} />
 
-        {/* Hostel owner routes */}
-        <Route path="profile" element={<Hostelprofile />} />
-        <Route path="requests" element={<Hostelrequest />} />
-        <Route path="acceptedreq" element={<Acceptedreq />} />
-        <Route path="hostel-structure" element={<HostelStructure />} />
-        <Route path="hostel-allocation" element={<HostelAllocation />} />
+          {/* Hostel owner routes */}
+          <Route path="profile" element={<Hostelprofile />} />
+          <Route path="requests" element={<Hostelrequest />} />
+          <Route path="acceptedreq" element={<Acceptedreq />} />
+          <Route path="hostel-structure" element={<HostelStructure />} />
+          <Route path="hostel-allocation" element={<HostelAllocation />} />
 
-        {/* Hostel/Mlist specific pages */}
-        <Route path="Hlist" element={<Hlist />} />
-        <Route path="Hlist/:id" element={<Req />} />
+          {/* Hostel/Mlist specific pages */}
+          <Route path="Hlist" element={<Hlist />} />
+          <Route path="Hlist/:id" element={<Req />} />
+          <Route path="Mlist/:id" element={<MessReq />} />
 
-        {/* Messages for hostel owners */}
-        <Route path="messege" element={<HostelMessage />}>
-          <Route path="chat/:userId" element={<PrivateChat />} />
+          {/* Messages for hostel owners */}
+          <Route path="messege" element={<HostelMessage />}>
+            <Route path="chat/:userId" element={<PrivateChat />} />
+          </Route>
+
+          {/* Generic student pages */}
+          <Route path="msg" element={<Msg />}>
+            <Route path="chat/:userId" element={<PrivateChat />} />
+          </Route>
+          <Route path="menu" element={<MenuView />} />
+          <Route path="student-profile" element={<StudentProfile />} />
+          <Route path="announcements" element={<Announcements />} />
+          <Route path="complaints" element={<Complaints />} />
         </Route>
-
-        {/* Generic student pages */}
-        <Route path="msg" element={<Msg />}>
-          <Route path="chat/:userId" element={<PrivateChat />} />
-        </Route>
-        <Route path="menu" element={<MenuView />} />
-        <Route path="student-profile" element={<StudentProfile />} />
-        <Route path="announcements" element={<Announcements />} />
-        <Route path="complaints" element={<Complaints />} />
       </Route>
 
       {/* Fallback */}

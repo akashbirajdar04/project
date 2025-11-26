@@ -1,12 +1,12 @@
 import { Asynchandler } from "../utills/Aynchandler.js";
 import User from "../models/user.module.js";
 import { sendEmail } from "../utills/mail.js";
-import { mailverificationmailgencontent,resetpasswordmailgencontent } from "../utills/email-con.js";
+import { mailverificationmailgencontent, resetpasswordmailgencontent } from "../utills/email-con.js";
 import { ApiResponse } from "../utills/api-response.js";
 import { apiError } from "../utills/api-error.js";
 import { param } from "express-validator";
 import crypto, { hash } from "crypto";
-import {Hostel}  from "../models/hostel.js";
+import { Hostel } from "../models/hostel.js";
 import { Mess } from "../models/mess.module.js";
 import jwt from "jsonwebtoken";
 import { Request } from "../models/req.js";
@@ -23,48 +23,46 @@ const accessAndRefreshToken = async (user) => {
 
 // ========================= User Registration =========================
 export const userRegistration = Asynchandler(async (req, res, next) => {
-  const { username, password, email,role } = req.body;
- console.log(role)
+  const { username, password, email, role } = req.body;
+  console.log(role)
   // Check if user already exists
-  
+
   const ifExist = await User.findOne({ $or: [{ username }, { email }] });
   if (ifExist) {
     return res.json("this user is presents")
   }
-console.log("hello")
-let user
+  console.log("hello")
+  let user
   // Create new user
-  if(role=="student")
-  {
+  if (role == "student") {
     user = await Student.create({
-  email: email.trim().toLowerCase(),
-  role: role.trim().toLowerCase(),
-  username: username.trim(),
-  password,
-  isEmailVerified: false
-});
+      email: email.trim().toLowerCase(),
+      role: role.trim().toLowerCase(),
+      username: username.trim(),
+      password,
+      isEmailVerified: false
+    });
   }
-  else if(role=="messowner")
-  {
+  else if (role == "messowner") {
     user = await Mess.create({
-  email: email.trim().toLowerCase(),
-  role: role.trim().toLowerCase(),
-  username: username.trim(),
-  password,
-  isEmailVerified: false
-  })
-}
-  else{
-    user = await Hostel.create({
-  email: email.trim().toLowerCase(),
-  role: role.trim().toLowerCase(),
-  username: username.trim(),
-  password,
-  isEmailVerified: false
-  })
+      email: email.trim().toLowerCase(),
+      role: role.trim().toLowerCase(),
+      username: username.trim(),
+      password,
+      isEmailVerified: false
+    })
   }
-if(!user) console.log("User is not created")
-  else {console.log("it is created")}
+  else {
+    user = await Hostel.create({
+      email: email.trim().toLowerCase(),
+      role: role.trim().toLowerCase(),
+      username: username.trim(),
+      password,
+      isEmailVerified: false
+    })
+  }
+  if (!user) console.log("User is not created")
+  else { console.log("it is created") }
   // Generate temporary token
   const { unhashedToken, hashedToken, tokenExpiry } =
     await user.temporaryAccessToken();
@@ -85,7 +83,7 @@ if(!user) console.log("User is not created")
   });
 
   return res.status(201).json(
-    new ApiResponse(201, "User registered successfully. Verification email sent.", { 
+    new ApiResponse(201, "User registered successfully. Verification email sent.", {
       userId: user._id
     })
   );
@@ -178,45 +176,43 @@ export const logout = Asynchandler(async (req, res, next) => {
     });
 });
 
-export const getcurrentuser=Asynchandler((req,res,next)=>{
-  const user=req.user;
-  return new ApiResponse(200,{user},"user info is fetched successfully")
+export const getcurrentuser = Asynchandler((req, res, next) => {
+  const user = req.user;
+  return new ApiResponse(200, { user }, "user info is fetched successfully")
 })
 
-export const verifyEmail=Asynchandler(async (req,res,next)=>{
-   const {Token}=req.params
-  
-   if(!Token) throw new apiError(404,"token is not there")
-   const hashToken=crypto.createHash("sha256")
-                   .update(Token)
-                   .digest("hex")
-     if(!hashToken)     throw new apiError(404,"hashtoken is not there")         
-    
-     const user= await User.findOne({
-            emailVerificationToken:hashToken,
-            isEmailVerificationExpiry:{$gt:Date.now()}
-      })
-      if(!user)  throw new apiError(404,"user is not there")   
-      user.emailVerificationToken=undefined
-      user.isEmailVerificationExpiry=undefined
-      user.isEmailVerified=true;
-      await user.save({validateBeforeSave:false})
-      return new ApiResponse(200,{},"Email is verified")
+export const verifyEmail = Asynchandler(async (req, res, next) => {
+  const { Token } = req.params
+
+  if (!Token) throw new apiError(404, "token is not there")
+  const hashToken = crypto.createHash("sha256")
+    .update(Token)
+    .digest("hex")
+  if (!hashToken) throw new apiError(404, "hashtoken is not there")
+
+  const user = await User.findOne({
+    emailVerificationToken: hashToken,
+    isEmailVerificationExpiry: { $gt: Date.now() }
+  })
+  if (!user) throw new apiError(404, "user is not there")
+  user.emailVerificationToken = undefined
+  user.isEmailVerificationExpiry = undefined
+  user.isEmailVerified = true;
+  await user.save({ validateBeforeSave: false })
+  return new ApiResponse(200, {}, "Email is verified")
 });
 
-export const resendemail=Asynchandler(async(req,res)=>{
-       const user=await User.findById(req.user._id)
-       if(!user)
-       {
-         throw new apiError("404","cant find the user")
-       }
-       if(user.isEmailVerified)
-       {
-        return new ApiResponse(202,{},"Email is verified")
-       }
-        const { unhashedToken, hashedToken, tokenExpiry } =
+export const resendemail = Asynchandler(async (req, res) => {
+  const user = await User.findById(req.user._id)
+  if (!user) {
+    throw new apiError("404", "cant find the user")
+  }
+  if (user.isEmailVerified) {
+    return new ApiResponse(202, {}, "Email is verified")
+  }
+  const { unhashedToken, hashedToken, tokenExpiry } =
     await user.temporaryAccessToken();
-        user.emailVerificationToken = hashedToken;
+  user.emailVerificationToken = hashedToken;
   user.isEmailVerificationExpiry = tokenExpiry;
   await user.save({ validateBeforeSave: false });
 
@@ -229,32 +225,31 @@ export const resendemail=Asynchandler(async(req,res)=>{
       `${req.protocol}://${req.get("host")}/api/v1/users/verify-emails/${unhashedToken}`
     )
   });
-  return res.json(202,(new ApiResponse(202,{},"Email is succesfully resend")))
+  return res.json(202, (new ApiResponse(202, {}, "Email is succesfully resend")))
 })
 
-const refreshaccessToken=Asynchandler(async(req,res)=>
-{
-   const Token=req.cookie.refreshToken || req.user.refreshToken
-   if(!Token) throw new apiError("404","tokn is invalid")
-   const Dtoken=jwt.verify(Token,process.env.REFRESH_TOKEN_SECRET)
-    if(!Dtoken) throw new apiError(404,"tkon is invalid") 
-    const user=User.findOne(Dtoken._id)
-  if(!user) throw new apiError("404","token is invalid")
-    const {acessToken,refreshToken:newrefreshToken}=acsessandrefreshtoken(user)
-     user.accessToken=acessToken
-     user.refreshToken=newrefreshToken
-     user.save({validation:false})
+const refreshaccessToken = Asynchandler(async (req, res) => {
+  const Token = req.cookie.refreshToken || req.user.refreshToken
+  if (!Token) throw new apiError("404", "tokn is invalid")
+  const Dtoken = jwt.verify(Token, process.env.REFRESH_TOKEN_SECRET)
+  if (!Dtoken) throw new apiError(404, "tkon is invalid")
+  const user = User.findOne(Dtoken._id)
+  if (!user) throw new apiError("404", "token is invalid")
+  const { acessToken, refreshToken: newrefreshToken } = acsessandrefreshtoken(user)
+  user.accessToken = acessToken
+  user.refreshToken = newrefreshToken
+  user.save({ validation: false })
 
-     return new ApiResponse(202,{},"new refresh token and acess token are created")
+  return new ApiResponse(202, {}, "new refresh token and acess token are created")
 })
-const forgotPassword=Asynchandler(async(req,res)=>{
-      const {email}=req.body
-      const user=User.findOne({email})
-       if(!user) throw new apiError("404","user is  invalid")
-      const {unhashedToken,hashToken,tokenExpiry}=User.temporaryAccessToken()
-    user.forgotPassword=hashToken
-    user.forgotPasswordExpiry=tokenExpiry
-     await sendEmail({
+const forgotPassword = Asynchandler(async (req, res) => {
+  const { email } = req.body
+  const user = User.findOne({ email })
+  if (!user) throw new apiError("404", "user is  invalid")
+  const { unhashedToken, hashToken, tokenExpiry } = User.temporaryAccessToken()
+  user.forgotPassword = hashToken
+  user.forgotPasswordExpiry = tokenExpiry
+  await sendEmail({
     email: user.email,
     subject: "forgot password",
     mailgencontent: resetpasswordmailgencontent(
@@ -262,37 +257,37 @@ const forgotPassword=Asynchandler(async(req,res)=>{
       `${req.protocol}://${req.get("host")}/api/v1/users/verify-emails/${unhashedToken}`
     )
   });
-  return new ApiResponse(202,{},"reset password is send successfully")
+  return new ApiResponse(202, {}, "reset password is send successfully")
 })
 
-export const resetpassword=Asynchandler(async(req,res)=>{
-  const Token=req.param
-  const  {newpassword}=req.body
+export const resetpassword = Asynchandler(async (req, res) => {
+  const Token = req.param
+  const { newpassword } = req.body
 
-  let hasToken=crypto.createHash("sha256")
-  .update(Token).digest("hex")
+  let hasToken = crypto.createHash("sha256")
+    .update(Token).digest("hex")
 
-  const user=User.findOne({
-    forgotPassword:hasToken,
-    forgotPasswordExpiry:{$gt:Date.now()}
+  const user = User.findOne({
+    forgotPassword: hasToken,
+    forgotPasswordExpiry: { $gt: Date.now() }
   })
-    if(!user) throw new apiError("404","user is  invalid")
-      user.forgotPassword=undefined
-      user.forgotPasswordExpiry=undefined
-      user.password=newpassword
-      user.save({validation:true})
+  if (!user) throw new apiError("404", "user is  invalid")
+  user.forgotPassword = undefined
+  user.forgotPasswordExpiry = undefined
+  user.password = newpassword
+  user.save({ validation: true })
 
-      return new ApiResponse(202,{},"password is reset successfully")
+  return new ApiResponse(202, {}, "password is reset successfully")
 })
-export const updatepass=Asynchandler(async(req,res)=>{
+export const updatepass = Asynchandler(async (req, res) => {
 
-  const {oldpassword,newpassword}=req.body
-  const user=User.findOne(req.user?._id)
-  if(!user) throw new apiError("404","user is  invalid")
-    const isvalid=User.isPasswordCorrect(newpassword)
-  if(!isvalid) throw new apiError(404,"password is invalid")
-    user.password=newpassword
-  user.save({validation:false})
+  const { oldpassword, newpassword } = req.body
+  const user = User.findOne(req.user?._id)
+  if (!user) throw new apiError("404", "user is  invalid")
+  const isvalid = User.isPasswordCorrect(newpassword)
+  if (!isvalid) throw new apiError(404, "password is invalid")
+  user.password = newpassword
+  user.save({ validation: false })
 })
 
 
@@ -344,18 +339,18 @@ export const Hprofile = async (req, res, next) => {
   const { name, adress, price, id } = req.body;
 
   try {
-    
-    
-      const hostel = await Hostel.findById(id);
-      if (!hostel) throw new apiError(404, "Hostel not found");
 
-      hostel.name = name;
-      hostel.adress = adress;
-      hostel.price = price;
-      await hostel.save({ validateBeforeSave: false });
 
-      return res.status(200).json(new ApiResponse(200, hostel, "Data updated"));
-    
+    const hostel = await Hostel.findById(id);
+    if (!hostel) throw new apiError(404, "Hostel not found");
+
+    hostel.name = name;
+    hostel.adress = adress;
+    hostel.price = price;
+    await hostel.save({ validateBeforeSave: false });
+
+    return res.status(200).json(new ApiResponse(200, hostel, "Data updated"));
+
   } catch (error) {
     console.error("Error saving hostel profile:", error.message);
     res.status(500).json(new ApiResponse(500, {}, "Error saving hostel profile"));
@@ -369,7 +364,7 @@ export const Hrequest = async (req, res) => {
     console.log("hi");
     const hostels = await Hostel.find();
 
-    if (!hostels ) {
+    if (!hostels) {
       throw new apiError(404, "No hostels found");
     }
 
@@ -428,33 +423,32 @@ export const Hreq = async (req, res) => {
 };
 
 
-export const MReqList=async (req,res)=>{
-  const{id}=req.params
-  const user= await Mess.findById(id)
-  if(!user)  throw new apiError(400, "Cannot send request");
-   return res.status(200)
-   .json(new ApiResponse(200,user.requesters,"succesufuly fetched data"))
+export const MReqList = async (req, res) => {
+  const { id } = req.params
+  const user = await Mess.findById(id)
+  if (!user) throw new apiError(400, "Cannot send request");
+  return res.status(200)
+    .json(new ApiResponse(200, user.requesters, "succesufuly fetched data"))
 }
 
- export const hReqList=async (req,res)=>{
-  const {id}=req.params
-  const user= await Hostel.findById(id)
-  if(!user)  
-    {
-      console.log("hey")
-      throw new apiError(400, "Cannot send request");
-    }
-    console.log(id)
-    console.log(user)
-   return res.status(200)
-   .json(new ApiResponse(200,user.requesters,"succesufuly fetched data"))
+export const hReqList = async (req, res) => {
+  const { id } = req.params
+  const user = await Hostel.findById(id)
+  if (!user) {
+    console.log("hey")
+    throw new apiError(400, "Cannot send request");
+  }
+  console.log(id)
+  console.log(user)
+  return res.status(200)
+    .json(new ApiResponse(200, user.requesters, "succesufuly fetched data"))
 }
 export const acceptRequest = async (req, res) => {
   try {
     const { reqId } = req.params; // <-- this is request ID (not owner)
- console.log(`this is ${reqId}`)
+    console.log(`this is ${reqId}`)
     // 1️⃣ Find the request by its ID
-  const request = await Request.findOne({ toOwner: reqId });
+    const request = await Request.findOne({ toOwner: reqId });
 
 
     if (!request)
@@ -473,17 +467,17 @@ export const acceptRequest = async (req, res) => {
     hostel.requesters = hostel.requesters.filter(
       (userId) => userId.toString() !== request.fromUser.toString()
     );
-  console.log("hi")
+    console.log("hi")
     // 5️⃣ Add user to accepted list (avoid duplicates)
     hostel.accepted.addToSet(request.fromUser);
     await hostel.save();
-   console.log("heyyy")
-    const user= await Student.findOne({_id:request.fromUser})
+    console.log("heyyy")
+    const user = await Student.findOne({ _id: request.fromUser })
     if (!user)
       return res.status(404).json({ message: "user not found for this request" });
-    user.hostelid=request.toOwner
+    user.hostelid = request.toOwner
     await user.save()
-     console.log("hey")
+    console.log("hey")
     // 6️⃣ Respond
     return res.status(200).json({
       message: "Request accepted successfully",
@@ -500,7 +494,7 @@ export const rejectRequest = async (req, res) => {
   try {
     const { reqId } = req.params;
     // 1️⃣ Find the request before deleting (so we know which hostel & user)
-    const request = await Request.findById({toOwner:reqId});
+    const request = await Request.findById({ toOwner: reqId });
     if (!request) {
       return res.status(404).json({ message: "Request not found" });
     }
@@ -525,13 +519,14 @@ export const rejectRequest = async (req, res) => {
   }
 };
 
-export const acceptedlist=async (req,res)=>{
-  const {id}= req.params
-  const request=await Request.find({fromUser:id,status:"accepted"})
+export const acceptedlist = async (req, res) => {
+  const { id } = req.params
+  const request = await Request.find({ fromUser: id, status: "accepted" })
   if (!request) {
-      return res.status(404).json({ message: "Request not found" });}
-      console.log(request)
-  return res.json(new ApiResponse(200,request,"list fetched succesfully"))
+    return res.status(404).json({ message: "Request not found" });
+  }
+  console.log(request)
+  return res.json(new ApiResponse(200, request, "list fetched succesfully"))
 }
 
 export const msglist = async (req, res) => {
@@ -565,12 +560,13 @@ export const msglist = async (req, res) => {
 export const gethosteid = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name } = req.query; // 👈 get ?name= from frontend
+    const { name } = req.query;
 
     const student = await Student.findById(id).populate("hostelid").lean();
 
     if (!student) {
-      return res.status(404).json({ message: "Student not found" });
+      // Return empty array instead of 404 for non-students
+      return res.status(200).json(new ApiResponse(200, [], "No hostel data found"));
     }
 
     let hostelData = student.hostelid;
@@ -590,21 +586,18 @@ export const gethosteid = async (req, res) => {
         hostelData = [hostelData];
       }
     } else {
-      hostelData = []; // ensure no nulls
+      hostelData = [];
     }
 
-    return res.status(200).json({
-      success: true,
-      data: hostelData,
-    });
+    return res.status(200).json(new ApiResponse(200, hostelData, "Hostel data fetched successfully"));
   } catch (error) {
     console.error("Error fetching student hostel ID:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json(new ApiResponse(500, null, "Internal server error"));
   }
 };
 
 
-import { Message ,Chat} from "../models/chat.js";
+import { Message, Chat } from "../models/chat.js";
 
 // 📩 Get all messages between two users
 export const getAllMessages = async (req, res) => {
@@ -648,5 +641,81 @@ export const getAllMessages = async (req, res) => {
       success: false,
       message: "Internal server error",
     });
+  }
+};
+
+// Get hostel profile
+export const getHostelProfile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const hostel = await Hostel.findById(id).select('-password -refreshToken -accessToken -emailVerificationToken');
+    if (!hostel) {
+      return res.status(404).json(new ApiResponse(404, null, "Hostel not found"));
+    }
+    return res.status(200).json(new ApiResponse(200, hostel, "Hostel profile fetched successfully"));
+  } catch (error) {
+    console.error("Error fetching hostel profile:", error);
+    return res.status(500).json(new ApiResponse(500, null, "Internal server error"));
+  }
+};
+
+// Update hostel profile
+export const updateHostelProfile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const hostel = await Hostel.findByIdAndUpdate(id, { $set: updates }, { new: true, runValidators: true }).select('-password -refreshToken -accessToken -emailVerificationToken');
+    if (!hostel) {
+      return res.status(404).json(new ApiResponse(404, null, "Hostel not found"));
+    }
+    return res.status(200).json(new ApiResponse(200, hostel, "Hostel profile updated successfully"));
+  } catch (error) {
+    console.error("Error updating hostel profile:", error);
+    return res.status(500).json(new ApiResponse(500, null, "Internal server error"));
+  }
+};
+
+// Get student's enrolled hostel
+// Get all messes
+export const getMessList = async (req, res) => {
+  try {
+    const messes = await Mess.find().select('-password -refreshToken -accessToken -emailVerificationToken');
+    return res.status(200).json(new ApiResponse(200, messes, "Messes fetched successfully"));
+  } catch (error) {
+    console.error("Error fetching mess list:", error);
+    return res.status(500).json(new ApiResponse(500, null, "Internal server error"));
+  }
+};
+
+// Get all hostels
+export const getHostelList = async (req, res) => {
+  try {
+    const hostels = await Hostel.find().select('-password -refreshToken -accessToken -emailVerificationToken');
+    return res.status(200).json(new ApiResponse(200, hostels, "Hostels fetched successfully"));
+  } catch (error) {
+    console.error("Error fetching hostel list:", error);
+    return res.status(500).json(new ApiResponse(500, null, "Internal server error"));
+  }
+};
+
+// Send mess request
+export const sendMessRequest = async (req, res) => {
+  try {
+    const { id, senderid } = req.params;
+    const mess = await Mess.findById(id);
+    if (!mess) {
+      return res.status(404).json(new ApiResponse(404, null, "Mess not found"));
+    }
+    const alreadyRequested = mess.requesters.some(r => r.toString() === senderid);
+    if (alreadyRequested) {
+      return res.status(400).json(new ApiResponse(400, null, "User already sent a request"));
+    }
+    mess.requesters.addToSet(senderid);
+    await mess.save();
+    const newRequest = await Request.create({ fromUser: senderid, toOwner: id });
+    return res.status(200).json(new ApiResponse(200, newRequest, "Request sent successfully"));
+  } catch (error) {
+    console.error("Error sending mess request:", error);
+    return res.status(500).json(new ApiResponse(500, null, error.message));
   }
 };

@@ -1,78 +1,173 @@
-import { useState } from "react";
-import axios from "axios";
+import { useEffect, useState } from "react";
+import api from "../../lib/api";
+import { toast } from "sonner";
+import { Building2, MapPin, Phone, Save, Loader2, Image as ImageIcon } from "lucide-react";
 
 export const Hostelprofile = () => {
-  const [name, setName] = useState("");
-  const [adress, setAdress] = useState("");
-  const [price, setPrice] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+    const hostelId = localStorage.getItem("Id");
+    const [profile, setProfile] = useState({
+        name: "",
+        address: "",
+        contact: "",
+        description: "",
+        facilities: "",
+        rules: ""
+    });
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
 
-  const id = localStorage.getItem("Id");
+    const load = async () => {
+        try {
+            setLoading(true);
+            const res = await api.get(`/hostel/${hostelId}/profile`);
+            if (res.data?.data) {
+                const data = res.data.data;
+                // Ensure facilities is a string for the input field
+                if (Array.isArray(data.facilities)) {
+                    data.facilities = data.facilities.join(", ");
+                }
+                setProfile(data);
+            }
+        } catch (e) {
+            // toast.error("Failed to load profile");
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage("");
+    useEffect(() => { if (hostelId) load(); }, [hostelId]);
 
-    try {
-      const res = await axios.post("http://localhost:3000/Profile/Hostelprofile", {
-        name,
-        adress,
-        price,
-        id,
-      });
-      setMessage(res.data.message);
-      setName("");
-      setAdress("");
-      setPrice("");
-    } catch (err) {
-      setMessage(err.response?.data?.message || "Something went wrong!");
-    } finally {
-      setLoading(false);
+    const onSave = async () => {
+        try {
+            setSaving(true);
+            await api.put(`/hostel/${hostelId}/profile`, profile);
+            toast.success("Profile updated successfully");
+        } catch (e) {
+            toast.error(e?.response?.data?.message || "Update failed");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center py-12">
+                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            </div>
+        );
     }
-  };
 
-  return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-xl shadow-lg">
-      <h2 className="text-2xl font-bold text-center mb-4">Hostel Profile</h2>
+    return (
+        <div className="max-w-4xl mx-auto space-y-6">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900">Hostel Profile</h1>
+                    <p className="text-slate-500 text-sm mt-1">Manage your hostel's public information</p>
+                </div>
+                <button
+                    onClick={onSave}
+                    disabled={saving}
+                    className="flex items-center px-5 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-medium shadow-sm transition-all disabled:opacity-70"
+                >
+                    {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                    Save Changes
+                </button>
+            </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          type="text"
-          placeholder="Enter the hostel name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400 focus:outline-none"
-        />
-        <input
-          type="text"
-          placeholder="Enter the address"
-          value={adress}
-          onChange={(e) => setAdress(e.target.value)}
-          required
-          className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400 focus:outline-none"
-        />
-        <input
-          type="text"
-          placeholder="Enter the price"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          required
-          className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400 focus:outline-none"
-        />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Main Info */}
+                <div className="md:col-span-2 space-y-6">
+                    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+                        <h3 className="font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4">Basic Details</h3>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition-colors disabled:opacity-50"
-        >
-          {loading ? "Saving..." : "Save"}
-        </button>
-      </form>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Hostel Name</label>
+                            <div className="relative">
+                                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <input
+                                    value={profile.name}
+                                    onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                                    className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-slate-300 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="e.g. Sunshine Boys Hostel"
+                                />
+                            </div>
+                        </div>
 
-      {message && <p className="mt-4 text-center text-green-600">{message}</p>}
-    </div>
-  );
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Address</label>
+                            <div className="relative">
+                                <MapPin className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                                <textarea
+                                    value={profile.address}
+                                    onChange={(e) => setProfile({ ...profile, address: e.target.value })}
+                                    className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-slate-300 focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
+                                    placeholder="Full address of the property"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Contact Number</label>
+                            <div className="relative">
+                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <input
+                                    value={profile.contact}
+                                    onChange={(e) => setProfile({ ...profile, contact: e.target.value })}
+                                    className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-slate-300 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="+91 98765 43210"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+                        <h3 className="font-semibold text-slate-800 border-b border-slate-100 pb-3 mb-4">Additional Info</h3>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                            <textarea
+                                value={profile.description}
+                                onChange={(e) => setProfile({ ...profile, description: e.target.value })}
+                                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-blue-500 focus:border-blue-500 min-h-[100px]"
+                                placeholder="Tell students about your hostel..."
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Facilities (Comma separated)</label>
+                            <input
+                                value={profile.facilities}
+                                onChange={(e) => setProfile({ ...profile, facilities: e.target.value })}
+                                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="WiFi, AC, Gym, Laundry..."
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Sidebar / Images */}
+                <div className="space-y-6">
+                    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                        <h3 className="font-semibold text-slate-800 mb-4">Hostel Image</h3>
+                        <div className="aspect-video rounded-lg bg-slate-100 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:bg-slate-50 hover:border-blue-400 hover:text-blue-500 transition-all cursor-pointer">
+                            <ImageIcon className="w-8 h-8 mb-2" />
+                            <span className="text-xs font-medium">Upload Image</span>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-2 text-center">
+                            Supported: JPG, PNG (Max 5MB)
+                        </p>
+                    </div>
+
+                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-6">
+                        <h3 className="font-semibold text-blue-900 mb-2">Tips</h3>
+                        <ul className="text-sm text-blue-800 space-y-2 list-disc pl-4">
+                            <li>Keep your contact info up to date.</li>
+                            <li>List all major facilities to attract students.</li>
+                            <li>Add a clear description of the location.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 };

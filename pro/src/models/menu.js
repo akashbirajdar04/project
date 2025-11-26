@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 
 const MenuSchema = new mongoose.Schema(
   {
-    day: { type: String, enum: ["mon","tue","wed","thu","fri","sat","sun"], required: true },
-    slot: { type: String, enum: ["breakfast","lunch","dinner"], required: true },
+    day: { type: String, enum: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"], required: true },
+    slot: { type: String, enum: ["breakfast", "lunch", "dinner"], required: true },
     items: [
       {
         name: { type: String, required: true },
