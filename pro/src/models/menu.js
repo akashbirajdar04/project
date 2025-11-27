@@ -13,10 +13,11 @@ const MenuSchema = new mongoose.Schema(
       },
     ],
     capacity: { type: Number, default: 100 },
+    messId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }
 );
 
-MenuSchema.index({ day: 1, slot: 1 }, { unique: true });
+MenuSchema.index({ messId: 1, day: 1, slot: 1 }, { unique: true });
 
 export const Menu = mongoose.model("Menu", MenuSchema);

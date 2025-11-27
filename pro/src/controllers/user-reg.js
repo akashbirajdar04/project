@@ -450,6 +450,8 @@ export const hReqList = async (req, res) => {
   return res.status(200)
     .json(new ApiResponse(200, user.requesters, "succesufuly fetched data"))
 }
+import { sendNotification } from "../utills/notification-helper.js";
+
 export const acceptRequest = async (req, res) => {
   try {
     const { reqId } = req.params; // <-- this is request ID (not owner)
@@ -485,6 +487,10 @@ export const acceptRequest = async (req, res) => {
     user.hostelid = request.toOwner
     await user.save()
     console.log("hey")
+
+    // 🔔 Send Notification
+    await sendNotification(req, request.fromUser, "success", `Your request to join ${hostel.name || 'the hostel'} has been accepted!`, reqId, "Hostel");
+
     // 6️⃣ Respond
     return res.status(200).json({
       message: "Request accepted successfully",
@@ -501,13 +507,15 @@ export const rejectRequest = async (req, res) => {
   try {
     const { reqId } = req.params;
     // 1️⃣ Find the request before deleting (so we know which hostel & user)
-    const request = await Request.findById({ toOwner: reqId });
+    // Fix: findOne({ toOwner: reqId }) matches acceptRequest logic, assuming reqId is Owner ID
+    const request = await Request.findOne({ toOwner: reqId });
     if (!request) {
       return res.status(404).json({ message: "Request not found" });
     }
 
     // 2️⃣ Remove the user from hostel.requesters array (if exists)
-    const hostel = await Hostel.findByOne({})
+    // Fix: findById(reqId) instead of findByOne({}) which is invalid
+    const hostel = await Hostel.findById(reqId);
     if (hostel) {
       hostel.requesters = hostel.requesters.filter(
         (userId) => userId.toString() !== request.fromUser.toString()
@@ -515,8 +523,11 @@ export const rejectRequest = async (req, res) => {
       await hostel.save();
     }
 
+    // 🔔 Send Notification
+    await sendNotification(req, request.fromUser, "error", `Your request to join ${hostel?.name || 'the hostel'} has been rejected.`, reqId, "Hostel");
+
     // 3️⃣ Delete the request document
-    await Request.findByIdAndDelete(reqId);
+    await Request.findByIdAndDelete(request._id);
 
     // 4️⃣ Respond
     res.status(200).json({ message: "Request rejected and removed successfully" });

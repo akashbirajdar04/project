@@ -1,4 +1,5 @@
 import { Mess, Student } from "../models/user.module.js";
+import { sendNotification } from "../utills/notification-helper.js";
 
 export const acceptMessRequest = async (req, res) => {
   try {
@@ -26,6 +27,9 @@ export const acceptMessRequest = async (req, res) => {
       console.log('Student messid updated for', userId);
     }
 
+    // 🔔 Send Notification
+    await sendNotification(req, userId, "success", `Your request to join ${mess.name || 'the mess'} has been accepted!`, messId, "Mess");
+
     res.json({ success: true, data: { requesters: mess.requesters, accepted: mess.accepted } });
   } catch (e) {
     console.error('Error accepting mess request:', e);
@@ -51,6 +55,10 @@ export const removeMessAccepted = async (req, res) => {
     if (!mess) return res.status(404).json({ success: false, message: 'Mess not found' });
     mess.accepted = (mess.accepted || []).filter((id) => String(id) !== String(userId));
     await mess.save({ validateBeforeSave: false });
+
+    // 🔔 Send Notification (Optional: Notify removal)
+    await sendNotification(req, userId, "warning", `You have been removed from ${mess.name || 'the mess'}.`, messId, "Mess");
+
     res.json({ success: true, data: mess.accepted });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
@@ -69,6 +77,9 @@ export const rejectMessRequest = async (req, res) => {
     // remove from requesters
     mess.requesters = (mess.requesters || []).filter((id) => String(id) !== String(userId));
     await mess.save({ validateBeforeSave: false });
+
+    // 🔔 Send Notification
+    await sendNotification(req, userId, "error", `Your request to join ${mess.name || 'the mess'} has been rejected.`, messId, "Mess");
 
     res.json({ success: true, data: { requesters: mess.requesters, accepted: mess.accepted } });
   } catch (e) {

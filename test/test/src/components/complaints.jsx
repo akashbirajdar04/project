@@ -12,7 +12,7 @@ export const Complaints = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/tickets/my", { params: { userId } });
+      const res = await api.get("/complaints/my", { params: { userId } });
       setItems(res.data?.data ?? []);
     } catch (e) {
       console.error(e);
@@ -29,7 +29,7 @@ export const Complaints = () => {
   const onCreate = async (e) => {
     e.preventDefault();
     try {
-      await api.post("/tickets", { ...form, userId });
+      await api.post("/complaints", { ...form, userId });
       setForm({ ...form, description: "" });
       toast.success("Ticket created");
       await fetchData();
@@ -40,7 +40,7 @@ export const Complaints = () => {
 
   const updateStatus = async (id, status) => {
     try {
-      await api.patch(`/tickets/${id}/status`, { status });
+      await api.patch(`/complaints/${id}/status`, { status });
       toast.success("Status updated");
       await fetchData();
     } catch (e) {
@@ -50,7 +50,7 @@ export const Complaints = () => {
 
   const submitFeedback = async (id, rating, comment) => {
     try {
-      await api.post(`/tickets/${id}/feedback`, { rating, comment });
+      await api.post(`/complaints/${id}/feedback`, { rating, comment });
       toast.success("Feedback submitted");
       await fetchData();
     } catch (e) {
@@ -123,8 +123,8 @@ export const Complaints = () => {
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-lg ${t.status === 'resolved' ? 'bg-green-100 text-green-600' :
-                        t.status === 'closed' ? 'bg-slate-100 text-slate-600' :
-                          'bg-blue-100 text-blue-600'
+                      t.status === 'closed' ? 'bg-slate-100 text-slate-600' :
+                        'bg-blue-100 text-blue-600'
                       }`}>
                       {t.status === 'resolved' ? <CheckCircle size={20} /> : <Clock size={20} />}
                     </div>
@@ -134,8 +134,8 @@ export const Complaints = () => {
                     </div>
                   </div>
                   <span className={`px-2.5 py-1 rounded-full text-xs font-medium border capitalize ${t.status === 'resolved' ? 'bg-green-50 text-green-700 border-green-200' :
-                      t.status === 'closed' ? 'bg-slate-50 text-slate-700 border-slate-200' :
-                        'bg-blue-50 text-blue-700 border-blue-200'
+                    t.status === 'closed' ? 'bg-slate-50 text-slate-700 border-slate-200' :
+                      'bg-blue-50 text-blue-700 border-blue-200'
                     }`}>
                     {t.status?.replace("_", " ")}
                   </span>

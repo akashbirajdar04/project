@@ -8,6 +8,8 @@ const ComplaintSchema = new mongoose.Schema(
     images: [{ type: String }],
     status: { type: String, enum: ["open", "in_progress", "resolved", "closed"], default: "open" },
     feedback: { rating: Number, comment: String },
+    messId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    hostelId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );
