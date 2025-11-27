@@ -6,10 +6,11 @@ import "./App.css"
 import "./index.css"
 import './style.css';
 
+import { Toaster } from 'sonner';
+
 createRoot(document.getElementById('root')).render(
- <BrowserRouter>
-  <App />
+  <BrowserRouter>
+    <App />
+    <Toaster position="top-right" richColors />
   </BrowserRouter>
-   
-  
 )

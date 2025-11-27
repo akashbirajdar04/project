@@ -1,5 +1,8 @@
 import { Complaint } from "../models/complaint.js";
 
+import { sendNotification } from "../utills/notification-helper.js";
+import User from "../models/user.module.js";
+
 export const createTicket = async (req, res) => {
   try {
     const { category, description, images = [] } = req.body;
@@ -9,7 +12,39 @@ export const createTicket = async (req, res) => {
     const raisedBy = req.user?._id || req.body.userId; // fallback for dev without auth
     if (!raisedBy) return res.status(401).json({ success: false, message: "Unauthorized" });
 
-    const doc = await Complaint.create({ raisedBy, category, description, images });
+    // Fetch user to get enrollments
+    const user = await User.findById(raisedBy);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    let messId, hostelId;
+    let recipientId;
+
+    // Route based on category
+    if (category === "food") {
+      messId = user.messid;
+      recipientId = messId;
+      console.log(`Complaint Category: Food. Mess ID: ${messId}`);
+      if (!messId) return res.status(400).json({ success: false, message: "You are not enrolled in a mess" });
+    } else {
+      // Default to hostel for room, plumbing, etc.
+      hostelId = user.hostelid;
+      recipientId = hostelId;
+      console.log(`Complaint Category: ${category}. Hostel ID: ${hostelId}`);
+      if (!hostelId) return res.status(400).json({ success: false, message: "You are not enrolled in a hostel" });
+    }
+
+    const doc = await Complaint.create({ raisedBy, category, description, images, messId, hostelId });
+
+    // 🔔 Notify the owner
+    if (recipientId) {
+      console.log(`Sending notification to owner: ${recipientId}`);
+      await sendNotification(req, recipientId, "warning", `New Complaint: ${category} - ${description.substring(0, 30)}...`, doc._id, "Complaint");
+    }
+
+    // 🔔 Notify the student (Confirmation)
+    console.log(`Sending confirmation to student: ${raisedBy}`);
+    await sendNotification(req, raisedBy, "success", `Complaint submitted: ${category}`, doc._id, "Complaint");
+
     res.json({ success: true, data: doc });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

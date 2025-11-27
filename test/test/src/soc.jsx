@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import io from "socket.io-client";
-
-const socket = io("http://localhost:3000"); // Make sure your backend socket.io is running
+import socket from "./lib/socket";
 
 export const PrivateChat = () => {
   const { userId } = useParams(); // Receiver's ID

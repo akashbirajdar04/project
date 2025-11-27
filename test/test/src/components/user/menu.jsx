@@ -31,6 +31,28 @@ export const MenuView = () => {
   useEffect(() => { loadWeek(); }, []);
   useEffect(() => { loadCap(); }, [day, slot]);
 
+  // 🔔 Real-time update
+  useEffect(() => {
+    const handleUpdate = (data) => {
+      if (data && data.relatedModel === "Menu") {
+        console.log("Menu update received, reloading...");
+        loadWeek();
+        loadCap();
+      }
+    };
+    import("../../lib/socket").then((mod) => {
+      const socket = mod.default;
+      socket.on("receive_notification", handleUpdate);
+    });
+
+    return () => {
+      import("../../lib/socket").then((mod) => {
+        const socket = mod.default;
+        socket.off("receive_notification", handleUpdate);
+      });
+    };
+  }, [day, slot]);
+
   const onBook = async () => {
     try {
       await api.post("/mess/book", { userId, day, slot });

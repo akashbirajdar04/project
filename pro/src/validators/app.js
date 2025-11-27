@@ -39,6 +39,8 @@ const io = new Server(server, {
   },
 });
 
+app.set("io", io); // ✅ Make io accessible in controllers
+
 
 io.on("connection", (socket) => {
   console.log("🟢 Connected:", socket.id);
@@ -48,6 +50,14 @@ io.on("connection", (socket) => {
     const roomId = [sender, receiver].sort().join("_");
     socket.join(roomId);
     console.log(`✅ ${sender} joined room ${roomId}`);
+  });
+
+  // 🔔 Join user's personal room for notifications
+  socket.on("register_user", (userId) => {
+    if (userId) {
+      socket.join(userId);
+      console.log(`👤 User ${userId} registered for notifications`);
+    }
   });
 
   socket.on("send_message", async (data) => {

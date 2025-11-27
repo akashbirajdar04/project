@@ -39,6 +39,25 @@ const MessMenuManage = () => {
     setCapacity(cap);
   }, [day, slot, week]);
 
+  // 🔔 Real-time update
+  useEffect(() => {
+    const handleUpdate = (data) => {
+      if (data && data.relatedModel === "Menu") {
+        loadWeek();
+      }
+    };
+    import("../../lib/socket").then((mod) => {
+      const socket = mod.default;
+      socket.on("receive_notification", handleUpdate);
+    });
+    return () => {
+      import("../../lib/socket").then((mod) => {
+        const socket = mod.default;
+        socket.off("receive_notification", handleUpdate);
+      });
+    };
+  }, []);
+
   const onAddItem = () => {
     if (!newItem.name.trim()) return;
     const entry = {

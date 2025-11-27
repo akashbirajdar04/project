@@ -15,6 +15,7 @@ import {
     AlertCircle,
     UtensilsCrossed
 } from 'lucide-react';
+import NotificationBell from './common/NotificationBell';
 
 const Layout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -145,6 +146,7 @@ const Layout = () => {
                     </button>
 
                     <div className="flex items-center space-x-4 ml-auto">
+                        <NotificationBell />
                         <div className="flex items-center space-x-2">
                             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
                                 U
