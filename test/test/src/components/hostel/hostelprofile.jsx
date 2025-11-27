@@ -11,7 +11,8 @@ export const Hostelprofile = () => {
         contact: "",
         description: "",
         facilities: "",
-        rules: ""
+        rules: "",
+        image: ""
     });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -26,12 +27,41 @@ export const Hostelprofile = () => {
                 if (Array.isArray(data.facilities)) {
                     data.facilities = data.facilities.join(", ");
                 }
+                // Map avatar.url to image for frontend display
+                if (data.avatar && data.avatar.url) {
+                    data.image = data.avatar.url;
+                }
                 setProfile(data);
             }
         } catch (e) {
             // toast.error("Failed to load profile");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            // Show local preview immediately
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setProfile(prev => ({ ...prev, image: reader.result }));
+            };
+            reader.readAsDataURL(file);
+
+            const form = new FormData();
+            form.append("image", file);
+            api.put(`/hostel/${hostelId}/profile/image`, form)
+                .then((res) => {
+                    toast.success("Image updated successfully");
+                    if (res.data?.data?.url) {
+                        setProfile(prev => ({ ...prev, image: res.data.data.url }));
+                    }
+                })
+                .catch((e) => {
+                    toast.error(e?.response?.data?.message || "Update failed");
+                })
         }
     };
 
@@ -149,9 +179,21 @@ export const Hostelprofile = () => {
                 <div className="space-y-6">
                     <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
                         <h3 className="font-semibold text-slate-800 mb-4">Hostel Image</h3>
-                        <div className="aspect-video rounded-lg bg-slate-100 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:bg-slate-50 hover:border-blue-400 hover:text-blue-500 transition-all cursor-pointer">
-                            <ImageIcon className="w-8 h-8 mb-2" />
-                            <span className="text-xs font-medium">Upload Image</span>
+                        <div className="aspect-video rounded-lg bg-slate-100 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:bg-slate-50 hover:border-blue-400 hover:text-blue-500 transition-all cursor-pointer relative overflow-hidden">
+                            {profile.image ? (
+                                <img
+                                    src={profile.image}
+                                    alt="Hostel"
+                                    className="w-full h-full object-cover"
+                                    referrerPolicy="no-referrer"
+                                />
+                            ) : (
+                                <>
+                                    <ImageIcon className="w-8 h-8 mb-2" />
+                                    <span className="text-xs font-medium">Upload Image</span>
+                                </>
+                            )}
+                            <input type="file" onChange={handleImageChange} accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" />
                         </div>
                         <p className="text-xs text-slate-400 mt-2 text-center">
                             Supported: JPG, PNG (Max 5MB)

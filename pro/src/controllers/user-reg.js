@@ -397,6 +397,13 @@ export const Hreq = async (req, res) => {
         .json(new ApiResponse(400, null, "User already sent a request"));
     }
 
+    // Check if user is already enrolled (accepted)
+    if (hostel.accepted && hostel.accepted.includes(senderid)) {
+      return res
+        .status(400)
+        .json(new ApiResponse(400, null, "You are already enrolled in this hostel"));
+    }
+
     // Add to requesters array
     hostel.requesters.push(senderid);
     await hostel.save();
@@ -710,6 +717,12 @@ export const sendMessRequest = async (req, res) => {
     if (alreadyRequested) {
       return res.status(400).json(new ApiResponse(400, null, "User already sent a request"));
     }
+
+    // Check if user is already enrolled (accepted)
+    if (mess.accepted && mess.accepted.some(r => r.toString() === senderid)) {
+      return res.status(400).json(new ApiResponse(400, null, "You are already enrolled in this mess"));
+    }
+
     mess.requesters.addToSet(senderid);
     await mess.save();
     const newRequest = await Request.create({ fromUser: senderid, toOwner: id });

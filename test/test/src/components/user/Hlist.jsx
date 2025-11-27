@@ -12,6 +12,7 @@ export const Hlist = () => {
     const fetchData = async () => {
       try {
         const res = await api.get("/Profile/Hostelrequest");
+        console.log("Hostel List Data:", res.data?.data);
         setHostels(res.data?.data || []);
         const userId = localStorage.getItem("Id");
         if (userId) {
@@ -51,8 +52,17 @@ export const Hlist = () => {
             const CardContent = (
               <div className={`h-full flex flex-col bg-white rounded-xl border border-slate-200 p-5 transition-all duration-200 ${!isOtherWhileEnrolled ? 'hover:shadow-lg hover:border-blue-200 hover:-translate-y-1' : 'opacity-60'}`}>
                 <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 rounded-lg bg-blue-50 text-blue-600">
-                    <Building2 size={24} />
+                  <div className="p-3 rounded-lg bg-blue-50 text-blue-600 overflow-hidden relative w-12 h-12 flex items-center justify-center">
+                    {h.avatar?.url ? (
+                      <img
+                        src={h.avatar.url}
+                        alt={h.name}
+                        className="w-full h-full object-cover rounded-lg"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <Building2 size={24} />
+                    )}
                   </div>
                   {isEnrolled && (
                     <span className="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 rounded-full">

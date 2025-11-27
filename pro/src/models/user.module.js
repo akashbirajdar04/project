@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema(
   {
     avatar: {
       url: { type: String, default: "" },
+      public_id: { type: String, default: "" },
       localpath: { type: String, default: "" },
     },
     role: {
