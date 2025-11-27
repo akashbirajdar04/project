@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../lib/api";
 import { Send, ArrowLeft, Building2, User, CheckCircle, XCircle, Clock, RotateCcw } from "lucide-react";
@@ -9,8 +9,30 @@ export const Req = () => {
   const navigate = useNavigate();
   const senderid = localStorage.getItem("Id");
 
-  const [status, setStatus] = useState(null); // "pending" | "accepted" | "rejected" | null
-  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    const fetchHostel = async () => {
+      try {
+        const res = await api.get(`/hostel/${id}/profile`);
+        const d = res.data?.data;
+        setHostel(d);
+
+        if (d && senderid) {
+          // Use String() to ensure we compare strings vs ObjectIds correctly
+          const isAccepted = d.accepted?.some(uid => String(uid) === String(senderid));
+          const isPending = d.requesters?.some(uid => String(uid) === String(senderid));
+
+          if (isAccepted) {
+            setStatus("accepted");
+          } else if (isPending) {
+            setStatus("pending");
+          }
+        }
+      } catch (err) {
+        toast.error("Failed to load hostel details");
+      }
+    };
+    if (id) fetchHostel();
+  }, [id]);
 
   const handleClick = async () => {
     if (!senderid) {
@@ -20,14 +42,22 @@ export const Req = () => {
 
     try {
       setLoading(true);
-      // Note: The original code used a very specific URL structure. 
-      // Assuming the backend expects POST /Profile/Hostelrequest/:hostelId/:senderId
       await api.post(`/Profile/Hostelrequest/${id}/${senderid}`, {});
       setStatus("pending");
       toast.success("Request sent successfully!");
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.message || "Cannot send the request. Please try again.");
+      const msg = err.response?.data?.message || "Cannot send the request.";
+
+      if (msg.includes("already enrolled")) {
+        setStatus("accepted");
+        toast.info("You are already enrolled in this hostel.");
+      } else if (msg.includes("already sent")) {
+        setStatus("pending");
+        toast.info("Request already sent.");
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -44,6 +74,28 @@ export const Req = () => {
       </button>
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        {/* Hostel Image Header */}
+        <div className="h-48 bg-slate-100 relative">
+          {hostel?.avatar?.url ? (
+            <img
+              src={hostel.avatar.url}
+              alt={hostel.name}
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-slate-400">
+              <Building2 className="w-12 h-12" />
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+            <div className="text-white">
+              <h1 className="text-2xl font-bold">{hostel?.name || "Loading..."}</h1>
+              <p className="text-white/90 text-sm">{hostel?.address || "Loading address..."}</p>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
           <h2 className="text-xl font-bold text-slate-800 flex items-center">
             <Building2 className="w-5 h-5 mr-2 text-blue-600" />
@@ -55,6 +107,7 @@ export const Req = () => {
         </div>
 
         <div className="p-8">
+          {/* ... existing status and button logic ... */}
           <div className="flex items-center justify-between mb-8 p-4 bg-blue-50 rounded-xl border border-blue-100">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">

@@ -12,9 +12,12 @@ import StudentRoute from '../routes/student-route.js';
 import MessReqRoute from '../routes/mess-requests-route.js';
 import UserBasicRoute from '../routes/user-basic-route.js';
 import HostelStructureRoute from '../routes/hostel-structure-route.js';
+import UploadRoute from '../routes/upload-route.js';
+
 const app = express();
 app.use(cors());
 app.use(express.json());
+
 app.use('/', AuthRoute)
 app.use('/', AnnouncementRoute)
 app.use('/', ComplaintRoute)
@@ -23,6 +26,8 @@ app.use('/', StudentRoute)
 app.use('/', MessReqRoute)
 app.use('/', UserBasicRoute)
 app.use('/', HostelStructureRoute)
+app.use('/', UploadRoute)
+
 // ✅ Create HTTP server
 export const server = http.createServer(app);
 

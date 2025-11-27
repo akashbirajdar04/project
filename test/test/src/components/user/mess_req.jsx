@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../lib/api";
 import { Send, ArrowLeft, UtensilsCrossed, User, CheckCircle, XCircle, Clock, RotateCcw } from "lucide-react";
@@ -9,8 +9,42 @@ export const MessReq = () => {
     const navigate = useNavigate();
     const senderid = localStorage.getItem("Id");
 
-    const [status, setStatus] = useState(null); // "pending" | "accepted" | "rejected" | null
+    const [mess, setMess] = useState(null);
+    const [status, setStatus] = useState(null);
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchMess = async () => {
+            try {
+                const res = await api.get(`/Profile/Messprofile/${id}`);
+                const d = res.data?.data;
+                setMess(d);
+
+                console.log("Mess Data:", d);
+                console.log("Sender ID:", senderid);
+                console.log("Accepted List:", d?.accepted);
+                console.log("Requesters List:", d?.requesters);
+
+                if (d && senderid) {
+                    // Use String() to ensure we compare strings vs ObjectIds correctly
+                    const isAccepted = d.accepted?.some(uid => String(uid) === String(senderid));
+                    const isPending = d.requesters?.some(uid => String(uid) === String(senderid));
+
+                    console.log("Is Accepted:", isAccepted);
+                    console.log("Is Pending:", isPending);
+
+                    if (isAccepted) {
+                        setStatus("accepted");
+                    } else if (isPending) {
+                        setStatus("pending");
+                    }
+                }
+            } catch (err) {
+                toast.error("Failed to load mess details");
+            }
+        };
+        if (id) fetchMess();
+    }, [id]);
 
     const handleClick = async () => {
         if (!senderid) {
@@ -26,7 +60,17 @@ export const MessReq = () => {
             toast.success("Request sent successfully!");
         } catch (err) {
             console.error(err);
-            toast.error(err.response?.data?.message || "Cannot send the request. Please try again.");
+            const msg = err.response?.data?.message || "Cannot send the request.";
+
+            if (msg.includes("already enrolled")) {
+                setStatus("accepted");
+                toast.info("You are already enrolled in this mess.");
+            } else if (msg.includes("already sent")) {
+                setStatus("pending");
+                toast.info("Request already sent.");
+            } else {
+                toast.error(msg);
+            }
         } finally {
             setLoading(false);
         }
@@ -43,6 +87,28 @@ export const MessReq = () => {
             </button>
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                {/* Mess Image Header */}
+                <div className="h-48 bg-slate-100 relative">
+                    {mess?.avatar?.url ? (
+                        <img
+                            src={mess.avatar.url}
+                            alt={mess.name}
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-400">
+                            <UtensilsCrossed className="w-12 h-12" />
+                        </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+                        <div className="text-white">
+                            <h1 className="text-2xl font-bold">{mess?.name || "Loading..."}</h1>
+                            <p className="text-white/90 text-sm">{mess?.address || "Loading address..."}</p>
+                        </div>
+                    </div>
+                </div>
+
                 <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
                     <h2 className="text-xl font-bold text-slate-800 flex items-center">
                         <UtensilsCrossed className="w-5 h-5 mr-2 text-blue-600" />
@@ -54,6 +120,7 @@ export const MessReq = () => {
                 </div>
 
                 <div className="p-8">
+                    {/* ... existing status and button logic ... */}
                     <div className="flex items-center justify-between mb-8 p-4 bg-blue-50 rounded-xl border border-blue-100">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">

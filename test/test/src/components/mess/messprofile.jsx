@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../lib/api";
 import { toast } from "sonner";
-import { Save, Plus, X, Upload, Loader2, UtensilsCrossed } from "lucide-react";
+import { Save, Plus, X, Upload, Loader2, UtensilsCrossed, Image as ImageIcon } from "lucide-react";
 
 export const Messprofile = () => {
     const id = localStorage.getItem("Id");
@@ -16,6 +16,7 @@ export const Messprofile = () => {
         vegNonVeg: "both",
         priceRange: "medium",
         location: { city: "", state: "", pincode: "" },
+        image: ""
     });
     const [facilityInput, setFacilityInput] = useState("");
     const [saving, setSaving] = useState(false);
@@ -44,6 +45,7 @@ export const Messprofile = () => {
                         state: d.location?.state || "",
                         pincode: d.location?.pincode || "",
                     },
+                    image: d.avatar?.url || ""
                 });
             } catch (_) {
                 // toast.error("Failed to load profile");
@@ -65,6 +67,31 @@ export const Messprofile = () => {
 
     const removeFacility = (idx) => {
         update({ facilities: form.facilities.filter((_, i) => i !== idx) });
+    };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            // Show local preview immediately
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                update({ image: reader.result });
+            };
+            reader.readAsDataURL(file);
+
+            const formData = new FormData();
+            formData.append("image", file);
+            api.put(`/mess/${id}/profile/image`, formData)
+                .then((res) => {
+                    toast.success("Image updated successfully");
+                    if (res.data?.data?.url) {
+                        update({ image: res.data.data.url });
+                    }
+                })
+                .catch((e) => {
+                    toast.error(e?.response?.data?.message || "Update failed");
+                })
+        }
     };
 
     const onSubmit = async (e) => {
@@ -122,6 +149,37 @@ export const Messprofile = () => {
                 </div>
 
                 <div className="p-6">
+                    <div className="mb-8 flex flex-col items-center justify-center border-b border-slate-100 pb-8">
+                        <div className="relative group">
+                            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-slate-100 flex items-center justify-center">
+                                {form.image ? (
+                                    <img
+                                        src={form.image}
+                                        alt="Profile"
+                                        className="w-full h-full object-cover"
+                                        referrerPolicy="no-referrer"
+                                    />
+                                ) : (
+                                    <UtensilsCrossed className="w-12 h-12 text-slate-300" />
+                                )}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                                    <ImageIcon className="w-8 h-8 text-white" />
+                                </div>
+                            </div>
+                            <input
+                                type="file"
+                                onChange={handleImageChange}
+                                accept="image/*"
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer rounded-full"
+                                title="Change Profile Image"
+                            />
+                            <div className="absolute bottom-0 right-0 bg-blue-600 text-white p-1.5 rounded-full shadow-md border-2 border-white">
+                                <Plus size={14} />
+                            </div>
+                        </div>
+                        <p className="text-sm text-slate-500 mt-3">Click to upload profile picture</p>
+                    </div>
+
                     <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-6">
                         <div className="md:col-span-6">
                             <label className="block text-sm font-medium text-slate-700 mb-1">Mess Name</label>
