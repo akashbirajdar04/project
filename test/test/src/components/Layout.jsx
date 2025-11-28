@@ -85,11 +85,18 @@ const Layout = () => {
         { to: "/Profile/messege", icon: MessageSquare, label: "Messages" },
     ];
 
+    const adminNav = [
+        { to: "/Profile/admin", icon: Home, label: "Admin Dashboard" },
+        { to: "/Profile/announcements", icon: Bell, label: "Announcements" },
+    ];
+
     let navItems = [];
     if (role === 'messowner') {
         navItems = messOwnerNav;
     } else if (role === 'hostelowner') {
         navItems = hostelOwnerNav;
+    } else if (role === 'admin') {
+        navItems = adminNav;
     } else {
         navItems = studentNav;
     }

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { User } from "./user/user.jsx";
 import { Mess } from "./mess/mess.jsx";
 import { Hostel } from "./hostel/hostel.jsx";
-import { toast } from 'sonner';
+import { AdminDashboard } from "./admin/AdminDashboard.jsx";
 
 export const Profile = () => {
   const navigate = useNavigate();
@@ -27,6 +27,8 @@ export const Profile = () => {
         return <Mess />;
       case 'hostelowner':
         return <Hostel />;
+      case 'admin':
+        return <AdminDashboard />;
       default:
         return (
           <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">

@@ -13,6 +13,7 @@ import MessReqRoute from '../routes/mess-requests-route.js';
 import UserBasicRoute from '../routes/user-basic-route.js';
 import HostelStructureRoute from '../routes/hostel-structure-route.js';
 import UploadRoute from '../routes/upload-route.js';
+import AdminRoute from '../routes/admin-route.js'; // 🛡️ Admin Route
 
 const app = express();
 app.use(cors());
@@ -27,6 +28,7 @@ app.use('/', MessReqRoute)
 app.use('/', UserBasicRoute)
 app.use('/', HostelStructureRoute)
 app.use('/', UploadRoute)
+app.use('/api/v1/admin', AdminRoute) // 🛡️ Admin Routes
 
 // ✅ Create HTTP server
 export const server = http.createServer(app);

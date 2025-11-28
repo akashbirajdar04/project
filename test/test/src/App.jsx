@@ -36,6 +36,7 @@ import StudentProfile from "./components/user/profile.jsx";
 import { Index } from "./components/index.jsx";
 import { Announcements } from "./components/announcements.jsx";
 import { Complaints } from "./components/complaints.jsx";
+import { AdminDashboard } from "./components/admin/AdminDashboard.jsx";
 // Chat
 import { PrivateChat } from "./soc.jsx";
 
@@ -82,6 +83,7 @@ function App() {
           <Route path="student-profile" element={<StudentProfile />} />
           <Route path="announcements" element={<Announcements />} />
           <Route path="complaints" element={<Complaints />} />
+          <Route path="admin" element={<AdminDashboard />} />
         </Route>
       </Route>
 
