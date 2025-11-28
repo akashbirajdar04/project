@@ -11,7 +11,8 @@ import { Mess } from "../models/mess.module.js";
 import jwt from "jsonwebtoken";
 import { Request } from "../models/req.js";
 
-import { Student } from "../models/user.module.js";
+import { Student, Admin } from "../models/user.module.js";
+import { ProfileUpdate } from "../models/profile-update.js";
 
 // Generate access + refresh tokens
 const accessAndRefreshToken = async (user) => {
@@ -111,11 +112,19 @@ export const UserLogin = Asynchandler(async (req, res, next) => {
     case "hostelowner":
       user = await Hostel.findById(baseUser._id);
       break;
+    case "admin":
+      user = await Admin.findById(baseUser._id);
+      break;
     default:
       throw new apiError(400, "Invalid role type");
   }
 
   if (!user) throw new apiError(404, "User not found in specific role model");
+
+  // 🚫 Check if banned
+  if (user.isBanned) {
+    throw new apiError(403, "Your account has been banned. Please contact support.");
+  }
 
   // Step 3️⃣ Verify password
   const isCorrect = await user.isPasswordCorrect(password);
@@ -301,27 +310,38 @@ export const Mprofile = async (req, res) => {
     const mess = await Mess.findById(id);
     if (!mess) throw new apiError(404, "Mess not found");
 
-    if (name !== undefined) mess.name = name;
-    if (adress !== undefined) mess.adress = adress;
-    if (price !== undefined) mess.price = price;
-    if (description !== undefined) mess.description = description;
-    if (Array.isArray(facilities)) mess.facilities = facilities;
-    if (contact !== undefined) mess.contact = contact;
-    if (vegNonVeg !== undefined) mess.vegNonVeg = vegNonVeg;
-    if (priceRange !== undefined) mess.priceRange = priceRange;
+    // 🛑 Intercept Update: Create ProfileUpdate Request
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (adress !== undefined) updateData.adress = adress;
+    if (price !== undefined) updateData.price = price;
+    if (description !== undefined) updateData.description = description;
+    if (Array.isArray(facilities)) updateData.facilities = facilities;
+    if (contact !== undefined) updateData.contact = contact;
+    if (vegNonVeg !== undefined) updateData.vegNonVeg = vegNonVeg;
+    if (priceRange !== undefined) updateData.priceRange = priceRange;
     if (location && typeof location === 'object') {
-      mess.location = {
+      updateData.location = {
         city: location.city ?? mess.location?.city,
         state: location.state ?? mess.location?.state,
         pincode: location.pincode ?? mess.location?.pincode,
       };
     }
 
-    await mess.save({ validateBeforeSave: false });
-    return res.status(200).json(new ApiResponse(200, mess, "Mess profile updated"));
+    await ProfileUpdate.create({
+      userId: id,
+      role: "messowner",
+      updates: updateData,
+      status: "pending"
+    });
+
+    // Notify Admin (Assuming Admin ID is known or broadcast to admin room)
+    // await sendNotification(req, adminId, "info", `New profile update request from ${mess.username}`, id, "ProfileUpdate");
+
+    return res.status(200).json(new ApiResponse(200, {}, "Profile update submitted for approval"));
   } catch (e) {
-    console.error("Error saving mess profile:", e.message);
-    return res.status(500).json(new ApiResponse(500, {}, "Error saving mess profile"));
+    console.error("Error submitting mess profile update:", e.message);
+    return res.status(500).json(new ApiResponse(500, {}, "Error submitting mess profile update"));
   }
 };
 
@@ -344,12 +364,20 @@ export const Hprofile = async (req, res, next) => {
     const hostel = await Hostel.findById(id);
     if (!hostel) throw new apiError(404, "Hostel not found");
 
-    hostel.name = name;
-    hostel.adress = adress;
-    hostel.price = price;
-    await hostel.save({ validateBeforeSave: false });
+    // 🛑 Intercept Update: Create ProfileUpdate Request
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (adress !== undefined) updateData.adress = adress;
+    if (price !== undefined) updateData.price = price;
 
-    return res.status(200).json(new ApiResponse(200, hostel, "Data updated"));
+    await ProfileUpdate.create({
+      userId: id,
+      role: "hostelowner",
+      updates: updateData,
+      status: "pending"
+    });
+
+    return res.status(200).json(new ApiResponse(200, {}, "Profile update submitted for approval"));
 
   } catch (error) {
     console.error("Error saving hostel profile:", error.message);

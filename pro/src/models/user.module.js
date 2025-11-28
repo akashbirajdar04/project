@@ -43,6 +43,7 @@ const userSchema = new mongoose.Schema(
     forgotPasswordExpiry: Date,
     emailVerificationToken: String,
     isEmailVerificationExpiry: Date,
+    isBanned: { type: Boolean, default: false }, // 🚫 Ban status
   },
   {
     timestamps: true,
@@ -94,6 +95,15 @@ userSchema.methods.temporaryAccessToken = async function () {
 const User = mongoose.model("User", userSchema);
 
 // ------------------ Discriminators ------------------
+
+// Admin
+const Admin = User.discriminator(
+  "admin",
+  new mongoose.Schema({
+    // Admin specific fields if any (e.g., permissions level)
+    permissions: [{ type: String }]
+  })
+);
 
 // Hostel owner
 const Hostel = User.discriminator(
@@ -181,5 +191,5 @@ const Student = User.discriminator(
   })
 );
 
-export { Student, Mess, Hostel, User };
+export { Student, Mess, Hostel, Admin, User };
 export default User;
