@@ -13,7 +13,12 @@ const StudentProfile = () => {
     health: { diet: "", notes: "" },
     allergies: "",
     emergency: { name: "", phone: "" },
+    avatar: { url: "" },
+    contact: "",
+    isLookingForRoommate: false,
   });
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -21,7 +26,10 @@ const StudentProfile = () => {
     try {
       setLoading(true);
       const res = await api.get("/student/profile", { params: { userId } });
-      if (res.data?.data) setData((d) => ({ ...d, ...res.data.data }));
+      if (res.data?.data) {
+        setData((d) => ({ ...d, ...res.data.data }));
+        if (res.data.data.avatar?.url) setPreview(res.data.data.avatar.url);
+      }
     } catch (e) {
       console.error(e);
       toast.error("Failed to load profile");
@@ -38,7 +46,30 @@ const StudentProfile = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      await api.post("/student/profile", { ...data, userId });
+      const formData = new FormData();
+      formData.append("userId", userId);
+      formData.append("course", data.course);
+      formData.append("year", data.year);
+      formData.append("preferences", JSON.stringify(data.preferences));
+      formData.append("guardian", JSON.stringify(data.guardian));
+      formData.append("health", JSON.stringify(data.health));
+      formData.append("allergies", data.allergies);
+      formData.append("emergency", JSON.stringify(data.emergency));
+      formData.append("contact", data.contact);
+      formData.append("isLookingForRoommate", data.isLookingForRoommate);
+      if (file) formData.append("avatar", file);
+
+      const res = await api.post("/student/profile", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (res.data?.data) {
+        setData((d) => ({ ...d, ...res.data.data }));
+        if (res.data.data.avatar?.url) {
+          setPreview(res.data.data.avatar.url);
+        }
+      }
+
       toast.success("Profile updated successfully");
     } catch (e) {
       console.error(e);
@@ -48,42 +79,8 @@ const StudentProfile = () => {
     }
   };
 
-  const InputField = ({ label, icon: Icon, value, onChange, placeholder = "", type = "text", className = "", ...props }) => (
-    <div className={className}>
-      <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
-      <div className="relative rounded-lg shadow-sm">
-        {Icon && (
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Icon className="h-5 w-5 text-slate-400" />
-          </div>
-        )}
-        <input
-          type={type}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          className={`block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${Icon ? 'pl-10' : 'pl-3'} py-2.5 border transition-colors`}
-          {...props}
-        />
-      </div>
-    </div>
-  );
-
-  const Section = ({ title, icon: Icon, children }) => (
-    <div className="bg-white shadow-sm border border-slate-200 rounded-xl mb-6 overflow-hidden">
-      <div className="px-6 py-4 bg-slate-50 border-b border-slate-100">
-        <h3 className="text-lg font-semibold text-slate-800 flex items-center">
-          {Icon && <Icon className="h-5 w-5 mr-2.5 text-blue-600" />}
-          {title}
-        </h3>
-      </div>
-      <div className="p-6">
-        {children}
-      </div>
-    </div>
-  );
-
   if (loading) {
+
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
@@ -126,6 +123,64 @@ const StudentProfile = () => {
       </div>
 
       <form id="profile-form" onSubmit={save} className="space-y-6">
+        <Section title="Profile Photo" icon={User}>
+          <div className="flex items-center gap-6">
+            <div className="relative">
+              <div className="w-24 h-24 rounded-full overflow-hidden bg-slate-100 border-2 border-slate-200">
+                {preview ? (
+                  <img src={preview} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-slate-400">
+                    <User className="w-10 h-10" />
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">Upload New Photo</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const f = e.target.files[0];
+                  if (f) {
+                    setFile(f);
+                    setPreview(URL.createObjectURL(f));
+                  }
+                }}
+                className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+              <p className="mt-1 text-xs text-slate-500">JPG, PNG or GIF. Max 5MB.</p>
+            </div>
+          </div>
+        </Section>
+
+        <Section title="Roommate Preferences" icon={Users}>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
+              <input
+                type="checkbox"
+                id="looking"
+                checked={data.isLookingForRoommate}
+                onChange={(e) => setData({ ...data, isLookingForRoommate: e.target.checked })}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+              />
+              <label htmlFor="looking" className="font-medium text-slate-800 cursor-pointer">
+                I am interested in finding a roommate
+              </label>
+            </div>
+            {data.isLookingForRoommate && (
+              <InputField
+                label="My Contact Number (Visible to others)"
+                icon={Users}
+                value={data.contact}
+                onChange={(e) => setData({ ...data, contact: e.target.value })}
+                placeholder="e.g., +91 9876543210"
+              />
+            )}
+          </div>
+        </Section>
+
         <Section title="Academic Information" icon={BookOpen}>
           <div className="grid grid-cols-1 gap-y-6 gap-x-6 sm:grid-cols-6">
             <div className="sm:col-span-3">
@@ -280,8 +335,43 @@ const StudentProfile = () => {
           </div>
         </Section>
       </form>
-    </div>
+    </div >
   );
 };
 
 export default StudentProfile;
+
+const InputField = ({ label, icon: Icon, value, onChange, placeholder = "", type = "text", className = "", ...props }) => (
+  <div className={className}>
+    <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+    <div className="relative rounded-lg shadow-sm">
+      {Icon && (
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <Icon className="h-5 w-5 text-slate-400" />
+        </div>
+      )}
+      <input
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className={`block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${Icon ? 'pl-10' : 'pl-3'} py-2.5 border transition-colors`}
+        {...props}
+      />
+    </div>
+  </div>
+);
+
+const Section = ({ title, icon: Icon, children }) => (
+  <div className="bg-white shadow-sm border border-slate-200 rounded-xl mb-6 overflow-hidden">
+    <div className="px-6 py-4 bg-slate-50 border-b border-slate-100">
+      <h3 className="text-lg font-semibold text-slate-800 flex items-center">
+        {Icon && <Icon className="h-5 w-5 mr-2.5 text-blue-600" />}
+        {title}
+      </h3>
+    </div>
+    <div className="p-6">
+      {children}
+    </div>
+  </div>
+);

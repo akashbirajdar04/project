@@ -26,7 +26,7 @@ const notificationSchema = new mongoose.Schema(
         },
         onModel: {
             type: String,
-            enum: ['User', 'Complaint'] // Dynamic reference if needed
+            enum: ['User', 'Complaint', 'Mess'] // Dynamic reference if needed
         }
     },
     { timestamps: true }

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../lib/api";
-import { Send, ArrowLeft, UtensilsCrossed, User, CheckCircle, XCircle, Clock, RotateCcw } from "lucide-react";
+import { Send, ArrowLeft, UtensilsCrossed, User, CheckCircle, XCircle, Clock, RotateCcw, CreditCard } from "lucide-react";
 import { toast } from "sonner";
+import PayButton from "../payment";
 
 export const MessReq = () => {
     const { id } = useParams();
@@ -28,13 +29,25 @@ export const MessReq = () => {
                 if (d && senderid) {
                     // Use String() to ensure we compare strings vs ObjectIds correctly
                     const isAccepted = d.accepted?.some(uid => String(uid) === String(senderid));
+                    const isPaymentPending = d.payment_pending?.some(uid => String(uid) === String(senderid));
                     const isPending = d.requesters?.some(uid => String(uid) === String(senderid));
+
+                    console.log("DEBUG MessReq:", {
+                        messId: id,
+                        userId: senderid,
+                        isAccepted,
+                        isPaymentPending,
+                        isPending,
+                        paymentPendingList: d.payment_pending
+                    });
 
                     console.log("Is Accepted:", isAccepted);
                     console.log("Is Pending:", isPending);
 
                     if (isAccepted) {
                         setStatus("accepted");
+                    } else if (isPaymentPending) {
+                        setStatus("payment_pending");
                     } else if (isPending) {
                         setStatus("pending");
                     }
@@ -71,6 +84,20 @@ export const MessReq = () => {
             } else {
                 toast.error(msg);
             }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePaymentSuccess = async (response) => {
+        try {
+            setLoading(true);
+            await api.post(`/Profile/Messrequest/${id}/payment-success`, { userId: senderid });
+            setStatus("accepted");
+            toast.success("Payment successful! You are enrolled.");
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to confirm enrollment after payment.");
         } finally {
             setLoading(false);
         }
@@ -122,6 +149,12 @@ export const MessReq = () => {
                 <div className="p-8">
                     {/* ... existing status and button logic ... */}
                     <div className="flex items-center justify-between mb-8 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                        {/* DEBUG INFO - REMOVE LATER */}
+                        <div className="hidden">
+                            Status: {status} <br />
+                            Accepted: {String(mess?.accepted?.includes(senderid))} <br />
+                            PaymentPending: {String(mess?.payment_pending?.includes(senderid))}
+                        </div>
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                                 <User className="w-5 h-5" />
@@ -165,27 +198,42 @@ export const MessReq = () => {
                         </p>
 
                         <div className="flex items-center justify-center gap-4">
-                            <button
-                                onClick={handleClick}
-                                disabled={loading || !senderid || status === "pending" || status === "accepted"}
-                                className={`inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold shadow-sm transition-all transform active:scale-95
-                  ${loading || !senderid || status === "pending" || status === "accepted"
-                                        ? "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200"
-                                        : "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md"}
+                            {status === "payment_pending" ? (
+                                <PayButton
+                                    amount={mess?.price || 4000} // Default to 4000 if no price
+                                    user={{ _id: senderid, name: "Student", email: "student@example.com" }} // ideally fetch user details
+                                    onSuccess={handlePaymentSuccess}
+                                    btnText="Pay to Get Started"
+                                    className="inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold shadow-sm bg-green-600 text-white hover:bg-green-700 hover:shadow-md transition-all transform active:scale-95"
+                                />
+                            ) : (
+                                <button
+                                    onClick={handleClick}
+                                    disabled={loading || (!senderid && status !== "accepted") || status === "pending" || status === "accepted"}
+                                    className={`inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold shadow-sm transition-all transform active:scale-95
+                  ${(loading || (!senderid && status !== "accepted") || status === "pending" || status === "accepted")
+                                            ? "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200"
+                                            : "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md"}
                 `}
-                            >
-                                {loading ? (
-                                    <>
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                        Sending...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Send className="w-4 h-4 mr-2" />
-                                        Send Request
-                                    </>
-                                )}
-                            </button>
+                                >
+                                    {loading ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                            Sending...
+                                        </>
+                                    ) : status === "accepted" ? (
+                                        <>
+                                            <CheckCircle className="w-4 h-4 mr-2" />
+                                            Enrolled
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Send className="w-4 h-4 mr-2" />
+                                            Send Request
+                                        </>
+                                    )}
+                                </button>
+                            )}
 
                             {status && (
                                 <button

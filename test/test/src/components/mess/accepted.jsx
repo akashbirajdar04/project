@@ -1,19 +1,26 @@
 import { useEffect, useState } from "react";
 import api from "../../lib/api";
 import { toast } from "sonner";
-import { Users, UserMinus, Loader2, Search } from "lucide-react";
+import { Users, UserMinus, Loader2, Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 const AcceptedMembers = () => {
   const messId = localStorage.getItem("Id");
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 10;
 
   const load = async () => {
     try {
       setLoading(true);
-      const res = await api.get(`/Profile/Messaccepted/${messId}`);
+      const res = await api.get(`/Profile/Messaccepted/${messId}`, {
+        params: { page, limit, search }
+      });
       setItems(res.data?.data ?? []);
+      setPage(res.data?.page ?? 1);
+      setTotalPages(res.data?.totalPages ?? 1);
     } catch (e) {
       // toast.error("Failed to load accepted members");
     } finally {
@@ -21,7 +28,18 @@ const AcceptedMembers = () => {
     }
   };
 
-  useEffect(() => { if (messId) load(); }, [messId]);
+  // Debounce search and reload on change
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (messId) load();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [messId, page, search]);
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    setPage(1); // Reset to page 1 on new search
+  };
 
   const remove = async (userId) => {
     if (!confirm("Are you sure you want to remove this member?")) return;
@@ -34,12 +52,7 @@ const AcceptedMembers = () => {
     }
   };
 
-  const filteredItems = items.filter(u =>
-    (u.username?.toLowerCase() || "").includes(search.toLowerCase()) ||
-    (u.email?.toLowerCase() || "").includes(search.toLowerCase())
-  );
-
-  if (loading) {
+  if (loading && items.length === 0) {
     return (
       <div className="flex justify-center py-12">
         <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
@@ -61,24 +74,26 @@ const AcceptedMembers = () => {
             type="text"
             placeholder="Search members..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={handleSearchChange}
             className="pl-9 pr-4 py-2 rounded-lg border border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500 w-full md:w-64"
           />
         </div>
       </div>
 
-      {items.length === 0 ? (
+      {items.length === 0 && !loading ? (
         <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-12 text-center">
           <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
             <Users className="w-8 h-8 text-slate-300" />
           </div>
-          <h3 className="text-lg font-medium text-slate-900">No accepted members yet</h3>
-          <p className="text-slate-500 text-sm mt-1">Accept requests from the Requests tab to see members here.</p>
+          <h3 className="text-lg font-medium text-slate-900">No members found</h3>
+          <p className="text-slate-500 text-sm mt-1">
+            {search ? `No results for "${search}"` : "Accept requests to see members here."}
+          </p>
         </div>
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filteredItems.map((u) => (
+            {items.map((u) => (
               <div key={u._id} className="p-5 border border-slate-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-all flex items-center justify-between group">
                 <div className="flex items-center gap-4">
                   <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-600 grid place-items-center font-bold text-lg">
@@ -99,11 +114,31 @@ const AcceptedMembers = () => {
               </div>
             ))}
           </div>
-          {filteredItems.length === 0 && search && (
-            <div className="text-center py-12 text-slate-500">
-              No members found matching "{search}"
-            </div>
-          )}
+
+          {/* Pagination Controls */}
+          <div className="flex items-center justify-between mt-6 border-t border-slate-200 pt-4">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1 || loading}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft size={16} />
+              Previous
+            </button>
+
+            <span className="text-sm text-slate-600 font-medium">
+              Page {page} of {totalPages}
+            </span>
+
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages || loading}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+              <ChevronRight size={16} />
+            </button>
+          </div>
         </>
       )}
     </div>

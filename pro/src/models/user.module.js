@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
       lowercase: true,
+      index: true, // ⚡ Indexed for faster role filtering
     },
     username: {
       type: String,
@@ -23,11 +24,17 @@ const userSchema = new mongoose.Schema(
       trim: true,
       unique: true,
       lowercase: true,
+      index: true, // ⚡ Indexed
     },
     email: {
       type: String,
       required: true,
+      unique: true, // ⚡ Unique & Indexed
+      index: true,
     },
+    // ...
+    messid: { type: mongoose.Schema.Types.ObjectId, ref: "User", trim: true, index: true }, // ⚡ Indexed
+    hostelid: { type: mongoose.Schema.Types.ObjectId, ref: "User", trim: true, index: true }, // ⚡ Indexed
     fullname: {
       type: String,
       trim: true,
@@ -110,7 +117,7 @@ const Hostel = User.discriminator(
   "hostelowner",
   new mongoose.Schema({
     name: { type: String, trim: true },
-    address: { type: String, trim: true, unique: true },
+    address: { type: String, trim: true },
     price: { type: String, trim: true },
     description: { type: String, trim: true },
     facilities: [{ type: String, trim: true }],
@@ -137,6 +144,12 @@ const Hostel = User.discriminator(
         ref: "User",
       },
     ],
+    payment_pending: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   })
 );
 
@@ -145,7 +158,7 @@ const Mess = User.discriminator(
   "messowner",
   new mongoose.Schema({
     name: { type: String, trim: true },
-    address: { type: String, trim: true, unique: true },
+    address: { type: String, trim: true },
     price: { type: String, trim: true },
     description: { type: String, trim: true },
     facilities: [{ type: String, trim: true }],
@@ -172,6 +185,12 @@ const Mess = User.discriminator(
         ref: "User",
       },
     ],
+    payment_pending: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   })
 );
 
@@ -186,6 +205,8 @@ const Student = User.discriminator(
       gender: { type: String, enum: ['male', 'female', 'any'], default: 'any' },
       lifestyle: { type: String, trim: true }
     },
+    isLookingForRoommate: { type: Boolean, default: false },
+    contact: { type: String, trim: true },
     messid: { type: mongoose.Schema.Types.ObjectId, ref: "User", trim: true },
     hostelid: { type: mongoose.Schema.Types.ObjectId, ref: "User", trim: true },
   })

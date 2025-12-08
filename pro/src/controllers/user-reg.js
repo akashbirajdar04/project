@@ -13,6 +13,7 @@ import { Request } from "../models/req.js";
 
 import { Student, Admin } from "../models/user.module.js";
 import { ProfileUpdate } from "../models/profile-update.js";
+import { Chat, Message } from "../models/chat.js";
 
 // Generate access + refresh tokens
 const accessAndRefreshToken = async (user) => {
@@ -25,14 +26,12 @@ const accessAndRefreshToken = async (user) => {
 // ========================= User Registration =========================
 export const userRegistration = Asynchandler(async (req, res, next) => {
   const { username, password, email, role } = req.body;
-  console.log(role)
   // Check if user already exists
 
   const ifExist = await User.findOne({ $or: [{ username }, { email }] });
   if (ifExist) {
     return res.json("this user is presents")
   }
-  console.log("hello")
   let user
   // Create new user
   if (role == "student") {
@@ -62,8 +61,7 @@ export const userRegistration = Asynchandler(async (req, res, next) => {
       isEmailVerified: false
     })
   }
-  if (!user) console.log("User is not created")
-  else { console.log("it is created") }
+
   // Generate temporary token
   const { unhashedToken, hashedToken, tokenExpiry } =
     await user.temporaryAccessToken();
@@ -94,7 +92,6 @@ export const userRegistration = Asynchandler(async (req, res, next) => {
 // ========================= User Login =========================
 export const UserLogin = Asynchandler(async (req, res, next) => {
   const { email, password } = req.body;
-  console.log("Login Attempt:", email);
 
   // Step 1️⃣ Find user by email (any role)
   const baseUser = await User.findOne({ email });
@@ -505,15 +502,20 @@ export const acceptRequest = async (req, res) => {
       (userId) => userId.toString() !== request.fromUser.toString()
     );
     console.log("hi")
-    // 5️⃣ Add user to accepted list (avoid duplicates)
-    hostel.accepted.addToSet(request.fromUser);
+    // 5️⃣ Add user to payment_pending (avoid duplicates)
+    // hostel.accepted.addToSet(request.fromUser);
+    if (!hostel.payment_pending?.includes(request.fromUser)) {
+      hostel.payment_pending.push(request.fromUser);
+    }
     await hostel.save();
     console.log("heyyy")
-    const user = await Student.findOne({ _id: request.fromUser })
-    if (!user)
-      return res.status(404).json({ message: "user not found for this request" });
-    user.hostelid = request.toOwner
-    await user.save()
+    // NOTE: do NOT update user.hostelid yet
+
+    // const user = await Student.findOne({ _id: request.fromUser })
+    // if (!user)
+    //   return res.status(404).json({ message: "user not found for this request" });
+    // user.hostelid = request.toOwner
+    // await user.save()
     console.log("hey")
 
     // 🔔 Send Notification
@@ -578,24 +580,101 @@ export const acceptedlist = async (req, res) => {
 export const msglist = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name } = req.query; // get ?name= from frontend
+    const { name } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
 
-    // Find the hostel and populate accepted users
-    const hostel = await Hostel.findById(id).populate("accepted");
-
+    // 1. Find the hostel to get the list of accepted IDs
+    const hostel = await Hostel.findById(id).select("accepted");
     if (!hostel) {
       return res.status(404).json({ message: "Hostel not found" });
     }
 
-    let acceptedUsers = hostel.accepted;
+    let targetIds = hostel.accepted.map(id => id.toString());
 
-    // 🔍 If user searched for a name, filter accepted users
+    // 2. If searching, filter IDs first (Optimization: Search only within accepted)
     if (name && name.trim() !== "") {
-      const regex = new RegExp(name, "i"); // case-insensitive
-      acceptedUsers = acceptedUsers.filter(user => regex.test(user.name));
+      const regex = new RegExp(name, "i");
+      const searchConditions = [{ name: regex }, { username: regex }];
+      if (mongoose.Types.ObjectId.isValid(name)) {
+        searchConditions.push({ _id: name });
+      }
+
+      // Find matching students within the accepted list
+      const matchingStudents = await Student.find({
+        _id: { $in: targetIds },
+        $or: searchConditions
+      }).select("_id");
+
+      targetIds = matchingStudents.map(s => s._id.toString());
     }
 
-    return res.status(200).json(acceptedUsers);
+    // 3. Fetch Chats sorted by last message
+    // We want chats where this hostel is a participant
+    const chats = await Chat.find({ participants: id })
+      .sort({ updatedAt: -1 })
+      .select("participants updatedAt");
+
+    // Extract student IDs from chats (ordered by recency)
+    const chatStudentIds = [];
+    chats.forEach(chat => {
+      const studentId = chat.participants.find(p => p.toString() !== id.toString());
+      if (studentId) chatStudentIds.push(studentId.toString());
+    });
+
+    // 4. Merge Lists: Chatters first, then others
+    // Use Set to remove duplicates
+    const sortedIds = [...new Set([...chatStudentIds, ...targetIds])];
+
+    // Filter to ensure we only show valid/searched IDs
+    // (Intersection of Sorted List and Target List)
+    const finalIds = sortedIds.filter(sid => targetIds.includes(sid));
+
+    // 5. Paginate IDs
+    const pagedIds = finalIds.slice(skip, skip + limit);
+
+    // 6. Fetch Student Details
+    const students = await Student.find({ _id: { $in: pagedIds } })
+      .select("name username avatar email")
+      .lean();
+
+    // 7. Re-sort students to match pagedIds order
+    const studentsMap = new Map(students.map(s => [s._id.toString(), s]));
+    const orderedStudents = pagedIds.map(id => studentsMap.get(id)).filter(Boolean);
+
+    // 8. Attach Unread Count & Last Message Time
+    const studentsWithStats = await Promise.all(orderedStudents.map(async (student) => {
+      const chat = await Chat.findOne({ participants: { $all: [id, student._id] } });
+      let unreadCount = 0;
+      let lastMessageTime = null;
+
+      if (chat) {
+        unreadCount = await Message.countDocuments({
+          chatId: chat._id,
+          receiver: id,
+          status: { $ne: "read" }
+        });
+        lastMessageTime = chat.updatedAt;
+      }
+
+      return {
+        ...student,
+        unreadCount,
+        lastMessageTime
+      };
+    }));
+
+    const total = finalIds.length;
+
+    return res.status(200).json({
+      data: studentsWithStats,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit)
+      }
+    });
   } catch (error) {
     console.error("Error fetching message list:", error);
     return res.status(500).json({ message: "Server Error" });
@@ -608,49 +687,43 @@ export const gethosteid = async (req, res) => {
     const { id } = req.params;
     const { name } = req.query;
 
-    const student = await Student.findById(id).populate("hostelid").lean();
+    // Populate both hostelid and messid
+    const student = await Student.findById(id)
+      .populate("hostelid")
+      .populate("messid")
+      .lean();
 
     if (!student) {
-      // Return empty array instead of 404 for non-students
-      return res.status(200).json(new ApiResponse(200, [], "No hostel data found"));
+      return res.status(200).json(new ApiResponse(200, [], "No data found"));
     }
 
-    let hostelData = student.hostelid;
+    let facilities = [];
 
-    // If the student has multiple hostels
-    if (Array.isArray(hostelData)) {
-      if (name && name.trim() !== "") {
-        const regex = new RegExp(name, "i");
-        hostelData = hostelData.filter((h) => h && regex.test(h.name));
-      }
-    } else if (hostelData) {
-      // If student has only one hostel
-      if (name && name.trim() !== "") {
-        const regex = new RegExp(name, "i");
-        hostelData = regex.test(hostelData.name) ? [hostelData] : [];
-      } else {
-        hostelData = [hostelData];
-      }
-    } else {
-      hostelData = [];
+    if (student.hostelid) facilities.push(student.hostelid);
+    if (student.messid) facilities.push(student.messid);
+
+    // Filter by name if provided
+    if (name && name.trim() !== "") {
+      const regex = new RegExp(name, "i");
+      facilities = facilities.filter((f) => f && regex.test(f.name || f.username));
     }
 
-    return res.status(200).json(new ApiResponse(200, hostelData, "Hostel data fetched successfully"));
+    return res.status(200).json(new ApiResponse(200, facilities, "Facilities fetched successfully"));
   } catch (error) {
-    console.error("Error fetching student hostel ID:", error);
+    console.error("Error fetching student facilities:", error);
     return res.status(500).json(new ApiResponse(500, null, "Internal server error"));
   }
 };
 
 
-import { Message, Chat } from "../models/chat.js";
+
 
 // 📩 Get all messages between two users
 export const getAllMessages = async (req, res) => {
   try {
-    const { senderId, receiverId } = req.body;
+    const { sender, receiver } = req.body;
 
-    if (!senderId || !receiverId) {
+    if (!sender || !receiver) {
       return res.status(400).json({
         success: false,
         message: "Sender and Receiver IDs are required",
@@ -659,7 +732,7 @@ export const getAllMessages = async (req, res) => {
 
     // 🔍 Find the chat that includes both participants
     let chat = await Chat.findOne({
-      participants: { $all: [senderId, receiverId] },
+      participants: { $all: [sender, receiver] },
     });
 
     if (!chat) {
@@ -733,6 +806,37 @@ export const getMessList = async (req, res) => {
   }
 };
 
+export const confirmHostelPayment = async (req, res) => {
+  try {
+    const { hostelId } = req.params;
+    const { userId } = req.body;
+
+    const hostel = await Hostel.findById(hostelId);
+    if (!hostel) return res.status(404).json({ message: "Hostel not found" });
+
+    // Remove from payment_pending
+    hostel.payment_pending = (hostel.payment_pending || []).filter(id => String(id) !== String(userId));
+
+    // Add to accepted
+    hostel.accepted.addToSet(userId);
+    await hostel.save();
+
+    // Update student
+    const student = await Student.findById(userId);
+    if (student) {
+      student.hostelid = hostelId;
+      await student.save({ validateBeforeSave: false });
+    }
+
+    await sendNotification(req, userId, "success", `Payment received! You are now enrolled in ${hostel.name}.`, hostelId, "Hostel");
+
+    return res.status(200).json({ success: true, message: "Payment confirmed" });
+  } catch (error) {
+    console.error("Error confirming hostel payment:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 // Get all hostels
 export const getHostelList = async (req, res) => {
   try {
@@ -769,5 +873,72 @@ export const sendMessRequest = async (req, res) => {
   } catch (error) {
     console.error("Error sending mess request:", error);
     return res.status(500).json(new ApiResponse(500, null, error.message));
+  }
+};
+
+// 📩 Mark messages as read
+export const markMessagesAsRead = async (req, res) => {
+  try {
+    const { sender, receiver } = req.body;
+
+    if (!sender || !receiver) {
+      return res.status(400).json(new ApiResponse(400, null, "Sender and Receiver are required"));
+    }
+
+    const chat = await Chat.findOne({
+      participants: { $all: [sender, receiver] },
+    });
+
+    if (!chat) {
+      return res.status(404).json(new ApiResponse(404, null, "Chat not found"));
+    }
+
+    // Update messages where I am the receiver and status is not read
+    await Message.updateMany(
+      {
+        chatId: chat._id,
+        receiver: receiver,
+        status: { $ne: "read" }
+      },
+      {
+        $set: { status: "read", readAt: new Date() }
+      }
+    );
+
+    return res.status(200).json(new ApiResponse(200, null, "Messages marked as read"));
+  } catch (error) {
+    console.error("Error marking messages as read:", error);
+    return res.status(500).json(new ApiResponse(500, null, "Internal server error"));
+  }
+};
+
+// 🔢 Get count of unique unread chatters
+export const getUnreadChattersCount = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const result = await Message.aggregate([
+      {
+        $match: {
+          receiver: userId,
+          status: { $ne: "read" }
+        }
+      },
+      {
+        $group: {
+          _id: "$sender"
+        }
+      },
+      {
+        $count: "count"
+      }
+    ]);
+
+    const count = result.length > 0 ? result[0].count : 0;
+
+    return res.status(200).json(new ApiResponse(200, { count }, "Unread chatters count fetched"));
+  } catch (error) {
+    console.error("Error fetching unread chatters count:", error);
+    return res.status(500).json(new ApiResponse(500, null, "Internal server error"));
   }
 };

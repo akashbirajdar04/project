@@ -1,24 +1,33 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import api from "../lib/api";
 import { toast } from "sonner";
-import { Search, Bell, Send, Loader2 } from "lucide-react";
+import { Search, Bell, Send, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import debounce from "lodash/debounce";
 
 export const Announcements = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [q, setQ] = useState("");
+  const [searchQuery, setSearchQuery] = useState(""); // For API
+  const [inputValue, setInputValue] = useState(""); // For Input UI
   const [scopeFilter, setScopeFilter] = useState("all");
   const [form, setForm] = useState({ title: "", body: "", scope: "global" });
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalAnnouncements, setTotalAnnouncements] = useState(0);
+  const limit = 10;
 
   const role = localStorage.getItem("role");
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const params = { q };
+      const params = { q: searchQuery, page, limit };
       if (scopeFilter !== "all") params.scope = scopeFilter;
       const res = await api.get("/announcements", { params });
       setItems(res.data?.data ?? []);
+      setPage(res.data?.page ?? 1);
+      setTotalPages(res.data?.totalPages ?? 1);
+      setTotalAnnouncements(res.data?.totalAnnouncements ?? 0);
     } catch (e) {
       toast.error(e?.response?.data?.message || "Failed to load announcements");
     } finally {
@@ -29,15 +38,35 @@ export const Announcements = () => {
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchQuery, scopeFilter, page]);
 
+  // Memoize the debounced function
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((val) => {
+        setSearchQuery(val);
+        setPage(1); // Reset to page 1 on search
+      }, 400),
+    []
+  );
+
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setInputValue(val);
+    debouncedSearch(val);
+  };
+
+  const handleScopeChange = (e) => {
+    setScopeFilter(e.target.value);
+    setPage(1); // Reset to page 1 on filter change
+  };
+
+  // Cleanup
   useEffect(() => {
-    const t = setTimeout(() => {
-      fetchData();
-    }, 400);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, scopeFilter]);
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
 
   const onCreate = async (e) => {
     e.preventDefault();
@@ -72,8 +101,8 @@ export const Announcements = () => {
             </div>
             <input
               type="text"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
+              value={inputValue}
+              onChange={handleInputChange}
               placeholder="Search..."
               className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg leading-5 bg-white placeholder-slate-400 focus:outline-none focus:placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
             />
@@ -81,7 +110,7 @@ export const Announcements = () => {
 
           <select
             value={scopeFilter}
-            onChange={(e) => setScopeFilter(e.target.value)}
+            onChange={handleScopeChange}
             className="block w-full md:w-40 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg"
           >
             <option value="all">All</option>
@@ -175,38 +204,65 @@ export const Announcements = () => {
             </div>
             <h3 className="mt-2 text-sm font-medium text-slate-900">No announcements</h3>
             <p className="mt-1 text-sm text-slate-500">
-              {q ? 'No announcements match your search.' : 'Get started by creating a new announcement.'}
+              {inputValue ? 'No announcements match your search.' : 'Get started by creating a new announcement.'}
             </p>
           </div>
         ) : (
-          <div className="grid gap-4">
-            {items.map((item) => (
-              <div key={item._id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow duration-200">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-                      <Bell className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-semibold text-slate-900">
-                          {item.postedBy?.name || 'System'}
-                        </span>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 capitalize">
-                          {item.scope}
-                        </span>
-                        <span className="text-xs text-slate-400">
-                          • {new Date(item.createdAt).toLocaleDateString()}
-                        </span>
+          <>
+            <div className="grid gap-4">
+              {items.map((item) => (
+                <div key={item._id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow duration-200">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                        <Bell className="h-5 w-5" />
                       </div>
-                      <h4 className="text-base font-bold text-slate-800 mb-1">{item.title}</h4>
-                      <p className="text-sm text-slate-600 whitespace-pre-line leading-relaxed">{item.body}</p>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm font-semibold text-slate-900">
+                            {item.postedBy?.name || 'System'}
+                          </span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 capitalize">
+                            {item.scope}
+                          </span>
+                          <span className="text-xs text-slate-400">
+                            • {new Date(item.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <h4 className="text-base font-bold text-slate-800 mb-1">{item.title}</h4>
+                        <p className="text-sm text-slate-600 whitespace-pre-line leading-relaxed">{item.body}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="flex items-center justify-between mt-6 border-t border-slate-200 pt-4">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1 || loading}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft size={16} />
+                Previous
+              </button>
+
+              <span className="text-sm text-slate-600 font-medium">
+                Page {page} of {totalPages} ({totalAnnouncements} items)
+              </span>
+
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages || loading}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>

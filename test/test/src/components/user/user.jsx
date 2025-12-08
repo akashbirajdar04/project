@@ -40,33 +40,34 @@ export const User = () => {
                         const list = Array.isArray(c.data?.data) ? c.data.data : []
                         setPendingComplaints(list.filter(x => x.status === 'pending').length)
                         setResolvedComplaints(list.filter(x => x.status === 'resolved').length)
-                    } catch (_) { }
+                    } catch (e) { console.error(e); }
                 }
                 // Menu week
                 const w = await api.get('/mess/menu/week')
                 setWeek(w.data?.data || {})
-            } catch (_) { }
+            } catch (e) { console.error(e); }
         }
         load()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     useEffect(() => {
+        if (!enrolledMess) return;
         const loadCap = async () => {
             try {
                 const r = await api.get('/mess/capacity', { params: { day, slot } })
                 setCap(r.data?.data || { remaining: 0, total: 0 })
-            } catch (_) { }
+            } catch (e) { console.error(e); }
         }
         loadCap()
-    }, [day, slot])
+    }, [day, slot, enrolledMess])
 
     useEffect(() => {
         const loadBookings = async () => {
             try {
                 const r = await api.get('/mess/bookings/my', { params: { userId } })
                 setBookings(r.data?.data || [])
-            } catch (_) { }
+            } catch (e) { console.error(e); }
         }
         if (userId) loadBookings()
     }, [userId])

@@ -4,31 +4,68 @@ import { apiError } from "../utills/api-error.js";
 import { User, Student, Mess, Hostel } from "../models/user.module.js";
 import { Complaint } from "../models/complaint.js";
 import { ProfileUpdate } from "../models/profile-update.js";
+import { redisClient } from "../config/redis.js";
 
 // 📊 Get Dashboard Stats
 export const getDashboardStats = Asynchandler(async (req, res) => {
+    // Redis Caching (TTL: 5 minutes)
+    try {
+        const cachedStats = await redisClient.get("admin_stats");
+        if (cachedStats) {
+            return res.status(200).json(new ApiResponse(200, JSON.parse(cachedStats), "Stats fetched successfully (Cached)"));
+        }
+    } catch (err) {
+        console.error("Redis error:", err);
+    }
+
     const totalStudents = await Student.countDocuments();
     const totalMess = await Mess.countDocuments();
     const totalHostels = await Hostel.countDocuments();
     const totalComplaints = await Complaint.countDocuments();
     const activeComplaints = await Complaint.countDocuments({ status: { $in: ["pending", "in_progress"] } });
 
+    const stats = {
+        users: { total: totalStudents + totalMess + totalHostels, students: totalStudents, mess: totalMess, hostels: totalHostels },
+        complaints: { total: totalComplaints, active: activeComplaints }
+    };
+
+    // Cache the result
+    try {
+        await redisClient.setEx("admin_stats", 300, JSON.stringify(stats));
+    } catch (err) {
+        console.error("Redis set error:", err);
+    }
+
     return res.status(200).json(
-        new ApiResponse(200, {
-            users: { total: totalStudents + totalMess + totalHostels, students: totalStudents, mess: totalMess, hostels: totalHostels },
-            complaints: { total: totalComplaints, active: activeComplaints }
-        }, "Stats fetched successfully")
+        new ApiResponse(200, stats, "Stats fetched successfully")
     );
 });
 
 // 👥 Get All Users
 export const getAllUsers = Asynchandler(async (req, res) => {
     const { role } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     let filter = {};
     if (role) filter.role = role;
 
-    const users = await User.find(filter).select("-password -refreshToken -accessToken").sort({ createdAt: -1 });
-    return res.status(200).json(new ApiResponse(200, users, "Users fetched successfully"));
+    const users = await User.find(filter)
+        .select("-password -refreshToken -accessToken")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+    const totalUsers = await User.countDocuments(filter);
+    const totalPages = Math.ceil(totalUsers / limit);
+
+    return res.status(200).json(new ApiResponse(200, {
+        users,
+        page,
+        totalPages,
+        totalUsers
+    }, "Users fetched successfully"));
 });
 
 // 🚫 Ban/Unban User
@@ -54,18 +91,48 @@ export const deleteComplaint = Asynchandler(async (req, res) => {
 
 // 📋 Get All Complaints (Admin View)
 export const getAllComplaints = Asynchandler(async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     const complaints = await Complaint.find()
         .populate("raisedBy", "username email")
-        .sort({ createdAt: -1 });
-    return res.status(200).json(new ApiResponse(200, complaints, "Complaints fetched successfully"));
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+    const totalComplaints = await Complaint.countDocuments();
+    const totalPages = Math.ceil(totalComplaints / limit);
+
+    return res.status(200).json(new ApiResponse(200, {
+        complaints,
+        page,
+        totalPages,
+        totalComplaints
+    }, "Complaints fetched successfully"));
 });
 
 // 📝 Get Pending Profile Updates
 export const getPendingUpdates = Asynchandler(async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     const updates = await ProfileUpdate.find({ status: "pending" })
         .populate("userId", "username email role")
-        .sort({ createdAt: -1 });
-    return res.status(200).json(new ApiResponse(200, updates, "Pending updates fetched"));
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+    const totalUpdates = await ProfileUpdate.countDocuments({ status: "pending" });
+    const totalPages = Math.ceil(totalUpdates / limit);
+
+    return res.status(200).json(new ApiResponse(200, {
+        updates,
+        page,
+        totalPages,
+        totalUpdates
+    }, "Pending updates fetched"));
 });
 
 // ✅ Approve Profile Update

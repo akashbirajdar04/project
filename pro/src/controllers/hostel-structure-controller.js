@@ -1,10 +1,38 @@
 import HostelStructure from "../models/hostel-structure.js";
+import { redisClient } from "../config/redis.js";
 
 export const getStructure = async (req, res) => {
   try {
     const { hostelId } = req.params;
-    const doc = await HostelStructure.findOne({ hostelId });
-    return res.json({ success: true, data: doc || { hostelId, blocks: [] } });
+
+    // Redis Caching
+    let version = "1";
+    try {
+      version = await redisClient.get(`hostel_structure_version_${hostelId}`) || "1";
+      const cacheKey = `hostel_structure:${hostelId}:v:${version}`;
+      const cachedData = await redisClient.get(cacheKey);
+      if (cachedData) {
+        return res.json({ success: true, data: JSON.parse(cachedData) });
+      }
+    } catch (err) {
+      console.error("Redis error:", err);
+    }
+
+    const doc = await HostelStructure.findOne({ hostelId })
+      .select("-__v -updatedAt")
+      .lean();
+    const data = doc || { hostelId, blocks: [] };
+
+    // Cache the result
+    try {
+      const version = await redisClient.get(`hostel_structure_version_${hostelId}`) || "1";
+      const cacheKey = `hostel_structure:${hostelId}:v:${version}`;
+      await redisClient.setEx(cacheKey, 300, JSON.stringify(data));
+    } catch (err) {
+      console.error("Redis set error:", err);
+    }
+
+    return res.json({ success: true, data });
   } catch (e) {
     return res.status(500).json({ success: false, message: e.message });
   }
@@ -19,6 +47,14 @@ export const upsertStructure = async (req, res) => {
       { $set: { blocks } },
       { new: true, upsert: true }
     );
+
+    // Invalidate cache
+    try {
+      await redisClient.incr(`hostel_structure_version_${hostelId}`);
+    } catch (err) {
+      console.error("Redis error:", err);
+    }
+
     return res.json({ success: true, data: doc });
   } catch (e) {
     return res.status(500).json({ success: false, message: e.message });
@@ -46,6 +82,14 @@ export const assignBed = async (req, res) => {
 
     bed.occupiedBy = studentId;
     await doc.save({ validateBeforeSave: false });
+
+    // Invalidate cache
+    try {
+      await redisClient.incr(`hostel_structure_version_${hostelId}`);
+    } catch (err) {
+      console.error("Redis error:", err);
+    }
+
     return res.json({ success: true, data: doc });
   } catch (e) {
     return res.status(500).json({ success: false, message: e.message });
@@ -75,6 +119,14 @@ export const swapBeds = async (req, res) => {
     bedA.occupiedBy = bedB.occupiedBy;
     bedB.occupiedBy = temp;
     await doc.save({ validateBeforeSave: false });
+
+    // Invalidate cache
+    try {
+      await redisClient.incr(`hostel_structure_version_${hostelId}`);
+    } catch (err) {
+      console.error("Redis error:", err);
+    }
+
     return res.json({ success: true, data: doc });
   } catch (e) {
     return res.status(500).json({ success: false, message: e.message });

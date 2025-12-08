@@ -18,7 +18,7 @@ export const Mlist = () => {
           try {
             const m = await api.get(`/student/${userId}/mess`);
             setEnrolledMessId(m.data?.data?._id || null);
-          } catch (_) { }
+          } catch (e) { console.error(e); }
         }
       } catch (error) {
         console.error("Error fetching mess list:", error);

@@ -1,27 +1,96 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import api from "../../lib/api";
-import { Search, MessageSquare, User } from "lucide-react";
+import { Search, MessageSquare, User, ChevronDown } from "lucide-react";
+import debounce from "lodash/debounce";
 
 export const Message = () => {
   const [msg, setMsg] = useState([]);
-  const [name, setName] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [inputValue, setInputValue] = useState("");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+
   const Id = localStorage.getItem("Id");
+  const role = localStorage.getItem("role");
   const navigate = useNavigate();
   const location = useLocation();
 
+  const fetchMessages = async (reset = false) => {
+    if (loading) return;
+    setLoading(true);
+
+    let endpoint = "";
+    if (role === "hostelowner") {
+      endpoint = `/Profile/Hostelrequest/${Id}/msglist`;
+    } else if (role === "messowner") {
+      endpoint = `/Profile/Messrequest/${Id}/msglist`;
+    } else {
+      console.warn("Unknown role for message list:", role);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const currentPage = reset ? 1 : page;
+      const res = await api.get(endpoint, {
+        params: { name: searchQuery, page: currentPage, limit: 20 },
+      });
+
+      const newData = res.data.data || [];
+      const pagination = res.data.pagination;
+
+      if (reset) {
+        setMsg(newData);
+      } else {
+        setMsg((prev) => [...prev, ...newData]);
+      }
+
+      setHasMore(currentPage < pagination.pages);
+      setPage(currentPage + 1);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initial load and search change
   useEffect(() => {
-    api
-      .get(`/Profile/Hostelrequest/${Id}/msglist`, {
-        params: { name },
-      })
-      .then((res) => setMsg(res.data))
-      .catch((err) => { });
-  }, [Id, name]);
+    setPage(1);
+    fetchMessages(true);
+  }, [Id, searchQuery, role]);
 
   const openChat = (userId) => {
+    // Optimistically clear unread count
+    setMsg((prev) =>
+      prev.map((m) =>
+        m._id === userId ? { ...m, unreadCount: 0 } : m
+      )
+    );
     navigate(`chat/${userId}`);
   };
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((val) => {
+        setSearchQuery(val);
+      }, 300),
+    []
+  );
+
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setInputValue(val);
+    debouncedSearch(val);
+  };
+
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
 
   const isChatOpen = location.pathname.includes('/chat/');
 
@@ -39,8 +108,8 @@ export const Message = () => {
             <input
               type="text"
               placeholder="Search people..."
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={inputValue}
+              onChange={handleInputChange}
               className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -48,30 +117,59 @@ export const Message = () => {
 
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {msg.length > 0 ? (
-            msg.map((res) => (
-              <button
-                key={res._id || res.name}
-                onClick={() => openChat(res._id)}
-                className="w-full text-left p-3 rounded-xl hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-slate-100 group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                    {res?.name?.charAt(0) || <User size={18} />}
+            <>
+              {msg.map((res) => (
+                <button
+                  key={res._id}
+                  onClick={() => openChat(res._id)}
+                  className="w-full text-left p-3 rounded-xl hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-slate-100 group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold group-hover:bg-blue-600 group-hover:text-white transition-colors overflow-hidden">
+                      {res.avatar ? (
+                        <img src={res.avatar} alt={res.username} className="w-full h-full object-cover" />
+                      ) : (
+                        res.username?.charAt(0).toUpperCase() || <User size={18} />
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center w-full">
+                        <div className="font-semibold text-slate-800 text-sm">{res.username || res.name || "Unknown User"}</div>
+                        {res.lastMessageTime && (
+                          <span className="text-[10px] text-slate-400 ml-2">
+                            {new Date(res.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex justify-between items-center mt-1">
+                        <div className="text-xs text-slate-500 truncate max-w-[120px]">Tap to chat</div>
+                        {res.unreadCount > 0 && (
+                          <span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                            {res.unreadCount}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-semibold text-slate-800 text-sm">{res?.name}</div>
-                    <div className="text-xs text-slate-500">Tap to chat</div>
-                  </div>
-                </div>
-              </button>
-            ))
+                </button>
+              ))}
+
+              {hasMore && (
+                <button
+                  onClick={() => fetchMessages(false)}
+                  disabled={loading}
+                  className="w-full py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg mt-2 flex items-center justify-center gap-1"
+                >
+                  {loading ? "Loading..." : <>Load More <ChevronDown size={14} /></>}
+                </button>
+              )}
+            </>
           ) : (
             <div className="flex flex-col items-center justify-center h-40 text-center p-4">
               <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center mb-3 text-slate-400">
                 <MessageSquare size={24} />
               </div>
-              <p className="text-sm text-slate-500 font-medium">No conversations found</p>
-              <p className="text-xs text-slate-400 mt-1">Try searching for a different name</p>
+              <p className="text-sm text-slate-500 font-medium">{loading ? "Loading..." : "No conversations found"}</p>
             </div>
           )}
         </div>
