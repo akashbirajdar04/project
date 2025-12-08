@@ -21,7 +21,7 @@ export const Mess = () => {
       try {
         const res = await api.get("/mess/menu/week")
         setWeek(res.data?.data ?? {})
-      } catch (_) { }
+      } catch (e) { console.error(e); }
     }
     load()
   }, [])
@@ -31,7 +31,7 @@ export const Mess = () => {
       try {
         const res = await api.get("/mess/capacity", { params: { day, slot } })
         setCap(res.data?.data ?? { remaining: 0, total: 0 })
-      } catch (_) { }
+      } catch (e) { console.error(e); }
     }
     loadCap()
   }, [day, slot])

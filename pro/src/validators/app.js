@@ -1,4 +1,5 @@
 import { Chat, Message } from '../models/chat.js'
+import { connectRedis } from "../config/redis.js";
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
@@ -14,11 +15,17 @@ import UserBasicRoute from '../routes/user-basic-route.js';
 import HostelStructureRoute from '../routes/hostel-structure-route.js';
 import UploadRoute from '../routes/upload-route.js';
 import AdminRoute from '../routes/admin-route.js'; // 🛡️ Admin Route
+import RoommateRoute from '../routes/roommate-route.js';
+import LostFoundRoute from '../routes/lost-found-route.js';
+import MealFeedbackRoute from '../routes/meal-feedback-route.js';
+import PollRoute from '../routes/poll-route.js';
+import RateLimiter from '../controllers/ratelimit.js';
+import PaymentRoute from '../routes/payment-route.js';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-
+app.use(RateLimiter(60, 100))
 app.use('/', AuthRoute)
 app.use('/', AnnouncementRoute)
 app.use('/', ComplaintRoute)
@@ -29,6 +36,12 @@ app.use('/', UserBasicRoute)
 app.use('/', HostelStructureRoute)
 app.use('/', UploadRoute)
 app.use('/api/v1/admin', AdminRoute) // 🛡️ Admin Routes
+app.use('/api/v1/roommate', RoommateRoute);
+app.use('/api/v1/lost-found', LostFoundRoute);
+app.use('/api/v1/meal-feedback', MealFeedbackRoute);
+app.use('/api/v1/meal-feedback', MealFeedbackRoute);
+app.use('/api/v1', PollRoute);
+app.use('/api/payment', PaymentRoute);
 
 // ✅ Create HTTP server
 export const server = http.createServer(app);
@@ -85,10 +98,25 @@ io.on("connection", (socket) => {
     // 4️⃣ Emit the message to both users
     io.to(roomId).emit("receive_message", newMsg);
 
+    // 🔔 Notify receiver (Real-time toast)
+    io.to(receiver).emit("new_notification", {
+      senderId: sender,
+      message: message,
+      createdAt: newMsg.createdAt
+    });
+
     console.log(`💬 ${sender} → ${receiver}: ${message}`);
   });
+
 
   socket.on("disconnect", () => {
     console.log("🔴 Disconnected:", socket.id);
   });
 });
+
+// Connect to Redis
+connectRedis();
+
+// 👷 Start Background Worker
+import { initWorker } from "../controllers/redisworker.js";
+initWorker(io);

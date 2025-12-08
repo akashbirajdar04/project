@@ -1,11 +1,13 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import api from "../../lib/api";
 import { Search, MessageSquare, User } from "lucide-react";
+import debounce from "lodash/debounce";
 
 export const Msg = () => {
   const [hostel, setHostel] = useState([]);
-  const [name, setName] = useState("");
+  const [searchQuery, setSearchQuery] = useState(""); // For API
+  const [inputValue, setInputValue] = useState(""); // For Input UI
   const Id = localStorage.getItem("Id");
   const navigate = useNavigate();
   const location = useLocation();
@@ -14,17 +16,44 @@ export const Msg = () => {
     if (!Id) return;
     api
       .get(`/Profile/student/${Id}/hostel`, {
-        params: { name },
+        params: { name: searchQuery },
       })
       .then((res) => {
         setHostel(Array.isArray(res.data.data) ? res.data.data : [res.data.data]);
       })
-      .catch(() => { });
-  }, [Id, name]);
+      .catch((e) => { console.error(e); });
+  }, [Id, searchQuery]);
 
   const openChat = (userId) => {
+    // Optimistically clear unread count
+    setHostel((prev) =>
+      prev.map((h) =>
+        h._id === userId ? { ...h, unreadCount: 0 } : h
+      )
+    );
     navigate(`chat/${userId}`);
   };
+
+  // Memoize the debounced function so it doesn't get recreated on every render
+  const debouncedSearch = useCallback(
+    debounce((val) => {
+      setSearchQuery(val);
+    }, 300),
+    []
+  );
+
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setInputValue(val);
+    debouncedSearch(val);
+  };
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
 
   // Check if a chat is selected (we are in a child route)
   const isChatOpen = location.pathname.includes('/chat/');
@@ -43,8 +72,8 @@ export const Msg = () => {
             <input
               type="text"
               placeholder="Search people..."
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={inputValue}
+              onChange={handleInputChange}
               className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -63,8 +92,22 @@ export const Msg = () => {
                     {res?.name?.charAt(0) || <User size={18} />}
                   </div>
                   <div>
-                    <div className="font-semibold text-slate-800 text-sm">{res?.name}</div>
-                    <div className="text-xs text-slate-500">Tap to chat</div>
+                    <div className="flex justify-between items-center w-full">
+                      <div className="font-semibold text-slate-800 text-sm">{res?.name}</div>
+                      {res?.lastMessageTime && (
+                        <span className="text-[10px] text-slate-400 ml-2">
+                          {new Date(res.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex justify-between items-center mt-1">
+                      <div className="text-xs text-slate-500 truncate max-w-[120px]">Tap to chat</div>
+                      {res?.unreadCount > 0 && (
+                        <span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                          {res.unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </button>

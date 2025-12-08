@@ -1,0 +1,7 @@
+﻿
+> test@0.0.0 build
+> vite build
+
+[36mvite v7.1.7 [32mbuilding for production...[36m[39m
+transforming...
+[32mΓ£ô[39m 68 modules transformed.

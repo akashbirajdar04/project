@@ -39,12 +39,30 @@ const NotificationBell = () => {
 
         socket.on("receive_notification", handleNotification);
 
+        // Listen for chat notifications
+        const handleChatNotification = (data) => {
+            console.log("🔔 Client received chat notification:", data);
+            const notif = {
+                message: `New message: ${data.message}`,
+                type: "info",
+                createdAt: data.createdAt
+            };
+            setNotifications((prev) => [notif, ...prev]);
+            setUnreadCount((prev) => prev + 1);
+            toast.info(`New message: ${data.message}`);
+            // Trigger update for sidebar badge
+            window.dispatchEvent(new Event("messagesRead"));
+        };
+
+        socket.on("new_notification", handleChatNotification);
+
         // Test toast to verify sonner works
         // toast.info("Notification system ready"); 
 
         return () => {
             socket.off("connect", register);
             socket.off("receive_notification", handleNotification);
+            socket.off("new_notification", handleChatNotification);
         };
     }, [userId]);
 

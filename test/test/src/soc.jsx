@@ -17,12 +17,12 @@ export const PrivateChat = () => {
     // Fetch previous messages
     const fetchMessages = async () => {
       try {
-        const res = await fetch("http://localhost:3000/Profile/messages/getAll", {
+        const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/Profile/messages/getAll`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            senderId: currentUserId,
-            receiverId: userId,
+            sender: currentUserId,
+            receiver: userId,
           }),
         });
         const data = await res.json();
@@ -38,6 +38,31 @@ export const PrivateChat = () => {
     socket.on("receive_message", (msg) => {
       setMessages((prev) => [...prev, msg]);
     });
+
+    // Mark messages as read
+    const markRead = async () => {
+      try {
+        await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/Profile/messages/markRead`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("accessToken")}` // Assuming token is stored
+          },
+          body: JSON.stringify({
+            sender: userId,
+            receiver: currentUserId,
+          }),
+        });
+        // Dispatch event to update Layout badge
+        window.dispatchEvent(new Event("messagesRead"));
+      } catch (err) {
+        console.error("Error marking messages as read:", err);
+      }
+    };
+
+    if (currentUserId && userId) {
+      markRead();
+    }
 
     return () => socket.off("receive_message");
   }, [currentUserId, userId]);
@@ -63,16 +88,20 @@ export const PrivateChat = () => {
     <div className="flex flex-col h-full p-4 bg-slate-50">
       <h2 className="font-bold mb-2">Chat with {userId}</h2>
       <div className="flex-1 overflow-y-auto border p-2 mb-2 rounded bg-white flex flex-col gap-1">
-        {messages.map((m, i) => (
-          <div
-            key={i}
-            className={`p-2 rounded max-w-[70%] ${m.sender._id === currentUserId ? "bg-blue-100 text-blue-900 self-end" : "bg-slate-100 text-slate-900 self-start"
-              }`}
-          >
-            <b>{m.sender._id === currentUserId ? "You" : m.sender.name || m.sender.email}:</b>{" "}
-            {m.message}
-          </div>
-        ))}
+        {messages.map((m, i) => {
+          const senderId = m.sender?._id || m.sender;
+          const isMe = senderId === currentUserId;
+          return (
+            <div
+              key={i}
+              className={`p-2 rounded max-w-[70%] ${isMe ? "bg-blue-100 text-blue-900 self-end" : "bg-slate-100 text-slate-900 self-start"
+                }`}
+            >
+              <b>{isMe ? "You" : m.sender?.name || m.sender?.email || "User"}:</b>{" "}
+              {m.message}
+            </div>
+          );
+        })}
       </div>
       <div className="flex gap-2">
         <input

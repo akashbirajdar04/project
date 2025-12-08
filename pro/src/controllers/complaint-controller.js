@@ -56,7 +56,10 @@ export const myTickets = async (req, res) => {
     const userId = req.user?._id || req.query.userId;
     if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
 
-    const docs = await Complaint.find({ raisedBy: userId }).sort({ createdAt: -1 });
+    const docs = await Complaint.find({ raisedBy: userId })
+      .sort({ createdAt: -1 })
+      .select("-__v -updatedAt")
+      .lean();
     res.json({ success: true, data: docs });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

@@ -1,0 +1,15 @@
+
+> test@0.0.0 build
+> vite build
+
+[36mvite v7.1.7 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 67 modules transformed.
+[31m✗[39m Build failed in 2.62s
+[31merror during build:
+[31mCould not resolve "../lib/api" from "src/components/community/LostFound.jsx"[31m
+file: [36mC:/Users/Akash/Downloads/project/test/test/src/components/community/LostFound.jsx[31m
+    at getRollupError (file:///C:/Users/Akash/Downloads/project/test/test/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///C:/Users/Akash/Downloads/project/test/test/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at ModuleLoader.handleInvalidResolvedId (file:///C:/Users/Akash/Downloads/project/test/test/node_modules/rollup/dist/es/shared/node-entry.js:21564:24)
+    at file:///C:/Users/Akash/Downloads/project/test/test/node_modules/rollup/dist/es/shared/node-entry.js:21524:26[39m

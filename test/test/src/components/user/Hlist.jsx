@@ -21,7 +21,7 @@ export const Hlist = () => {
             const arr = h.data?.data || [];
             const hItem = Array.isArray(arr) ? arr[0] : null;
             setEnrolledHostelId(hItem?._id || null);
-          } catch (_) { }
+          } catch (e) { console.error(e); }
         }
       } catch (err) {
         console.error(err);

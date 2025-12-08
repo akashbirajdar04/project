@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 
 export const validateuser = (req, res, next) => {
-  console.log("22"); // confirm middleware runs
+
 
   const errors = validationResult(req);
 
