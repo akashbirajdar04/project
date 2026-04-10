@@ -79,17 +79,8 @@ const StudentProfile = () => {
     }
   };
 
-  if (loading) {
-
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <Loader2 className="mx-auto h-10 w-10 text-blue-600 animate-spin" />
-          <p className="mt-3 text-slate-500 font-medium">Loading your profile...</p>
-        </div>
-      </div>
-    );
-  }
+  // Non-blocking render to allow immediate LCP placeholder display
+  // if (loading) return ...
 
   return (
     <div className="max-w-4xl mx-auto pb-12">
@@ -126,12 +117,33 @@ const StudentProfile = () => {
         <Section title="Profile Photo" icon={User}>
           <div className="flex items-center gap-6">
             <div className="relative">
-              <div className="w-24 h-24 rounded-full overflow-hidden bg-slate-100 border-2 border-slate-200">
-                {preview ? (
-                  <img src={preview} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-400">
-                    <User className="w-10 h-10" />
+              <div className="relative w-24 h-24 rounded-full overflow-hidden bg-slate-100 border-2 border-slate-200">
+                {/* STATIC PLACEHOLDER — SAFE */}
+                <img
+                  src="/hero.webp"
+                  alt="Profile placeholder"
+                  width="96"
+                  height="96"
+                  fetchPriority="high"
+                  loading="eager"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+
+                {/* REAL AVATAR — LOADS LATER */}
+                {preview && preview !== "/hero.webp" && (
+                  <img
+                    src={preview}
+                    alt="Profile"
+                    width="96"
+                    height="96"
+                    className="absolute inset-0 w-full h-full object-cover animate-fadeIn"
+                  />
+                )}
+
+                {/* Fallback Icon only if NO preview and NO hero (unlikely) */}
+                {!preview && (
+                  <div className="absolute inset-0 w-full h-full flex items-center justify-center text-slate-400 bg-white/0">
+                    {/* Transparent */}
                   </div>
                 )}
               </div>

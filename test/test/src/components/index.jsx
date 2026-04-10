@@ -12,6 +12,8 @@ import {
     User
 } from "lucide-react";
 
+
+
 export const Index = () => {
     const navigate = useNavigate();
     const handlelogin = () => {
@@ -65,7 +67,7 @@ export const Index = () => {
                         <p className="mt-4 text-xl text-slate-600 mb-10 leading-relaxed">
                             The all-in-one platform for students, hostel owners, and mess managers to connect, manage bookings, and streamline campus life.
                         </p>
-                        <div className="flex flex-col sm:flex-row justify-center gap-4">
+                        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
                             <button
                                 onClick={handleregister}
                                 className="px-8 py-4 rounded-full bg-blue-600 text-white font-bold text-lg hover:bg-blue-700 shadow-xl shadow-blue-600/20 transition-all hover:-translate-y-1 flex items-center justify-center"
@@ -79,6 +81,22 @@ export const Index = () => {
                                 Existing User?
                             </button>
                         </div>
+
+                        <div className="relative">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-20 animate-pulse"></div>
+                            <img
+                                src="/hero.webp"
+                                alt="HostelHub Dashboard Preview"
+                                className="relative rounded-2xl shadow-2xl border border-slate-200 w-full"
+                                fetchPriority="high"
+                                loading="eager"
+                                width={1200}
+                                height={675}
+                            />
+                        </div>
+
+
+
                     </div>
                 </div>
 

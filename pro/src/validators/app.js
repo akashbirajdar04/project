@@ -26,6 +26,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(RateLimiter(60, 100))
+
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
 app.use('/', AuthRoute)
 app.use('/', AnnouncementRoute)
 app.use('/', ComplaintRoute)

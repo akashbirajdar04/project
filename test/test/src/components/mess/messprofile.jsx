@@ -108,13 +108,8 @@ export const Messprofile = () => {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="flex justify-center py-12">
-                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-            </div>
-        );
-    }
+    // Removed blocking loader to enable progressive image loading
+    // if (loading) return ...
 
     return (
         <div className="max-w-5xl mx-auto pb-12">
@@ -151,18 +146,35 @@ export const Messprofile = () => {
                 <div className="p-6">
                     <div className="mb-8 flex flex-col items-center justify-center border-b border-slate-100 pb-8">
                         <div className="relative group">
-                            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-slate-100 flex items-center justify-center">
-                                {form.image ? (
+                            <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-slate-100 flex items-center justify-center">
+                                {/* STATIC PLACEHOLDER — SAFE */}
+                                <img
+                                    src="/hero.png"
+                                    alt="Profile placeholder"
+                                    width="128"
+                                    height="128"
+                                    fetchPriority="high"
+                                    loading="eager"
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                />
+
+                                {/* REAL AVATAR — LOADS LATER */}
+                                {form.image && form.image !== "/hero.webp" && (
                                     <img
                                         src={form.image}
                                         alt="Profile"
-                                        className="w-full h-full object-cover"
+                                        className="absolute inset-0 w-full h-full object-cover animate-fadeIn"
                                         referrerPolicy="no-referrer"
                                     />
-                                ) : (
-                                    <UtensilsCrossed className="w-12 h-12 text-slate-300" />
                                 )}
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+
+                                {!form.image && (
+                                    <div className="absolute inset-0 w-full h-full flex items-center justify-center text-slate-300 bg-black/10 backdrop-blur-[1px]">
+                                        <UtensilsCrossed className="w-12 h-12" />
+                                    </div>
+                                )}
+
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer z-10">
                                     <ImageIcon className="w-8 h-8 text-white" />
                                 </div>
                             </div>

@@ -43,11 +43,19 @@ export const updateProfile = async (req, res) => {
 
     // Handle file upload
     if (req.file) {
-      const result = await uploadBufferToCloudinary(req.file.buffer);
-      updates.avatar = {
-        url: result.secure_url,
-        public_id: result.public_id
-      };
+      console.time("CloudinaryUpload");
+      try {
+        const result = await uploadBufferToCloudinary(req.file.buffer, {
+          timeout: 120000,
+          resource_type: "auto"
+        });
+        updates.avatar = {
+          url: result.secure_url,
+          public_id: result.public_id
+        };
+      } finally {
+        console.timeEnd("CloudinaryUpload");
+      }
     }
 
     // Parse JSON fields if they are strings (FormData sends everything as strings)

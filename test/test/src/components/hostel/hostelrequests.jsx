@@ -25,9 +25,10 @@ export const Hostelrequest = () => {
     if (id) fetchRequests();
   }, [id]);
 
-  const handleAccept = async (reqId) => {
+  const handleAccept = async (reqq) => {
     try {
-      await api.put(`/Profile/Hostelrequest/${id}/accept`); // Note: API path seems odd in original code (using user ID instead of req ID?), keeping as is but using api lib
+      const reqId = reqq._id;
+      await api.put(`/Profile/Hostelrequest/${reqId}/accept`);
       setRequests((prev) => prev.filter((r) => r._id !== reqId));
       toast.success("Request accepted");
     } catch (err) {
@@ -36,8 +37,9 @@ export const Hostelrequest = () => {
     }
   };
 
-  const handleReject = async (reqId) => {
+  const handleReject = async (reqq) => {
     try {
+      const reqId = reqq._id;
       await api.put(`/Profile/Hostelrequest/${reqId}/reject`);
       setRequests((prev) => prev.filter((r) => r._id !== reqId));
       toast.success("Request rejected");

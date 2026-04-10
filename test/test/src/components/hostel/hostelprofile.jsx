@@ -79,13 +79,14 @@ export const Hostelprofile = () => {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="flex justify-center py-12">
-                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-            </div>
-        );
-    }
+    // Loading state removed from blocking render to allow LCP optimization
+    // if (loading) {
+    //     return (
+    //         <div className="flex justify-center py-12">
+    //             <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+    //         </div>
+    //     );
+    // }
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
@@ -179,21 +180,34 @@ export const Hostelprofile = () => {
                 <div className="space-y-6">
                     <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
                         <h3 className="font-semibold text-slate-800 mb-4">Hostel Image</h3>
-                        <div className="aspect-video rounded-lg bg-slate-100 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:bg-slate-50 hover:border-blue-400 hover:text-blue-500 transition-all cursor-pointer relative overflow-hidden">
-                            {profile.image ? (
+                        <div className="aspect-video rounded-lg bg-slate-100 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:bg-slate-50 hover:border-blue-400 hover:text-blue-500 transition-all cursor-pointer relative overflow-hidden group">
+                            {/* STATIC PLACEHOLDER — SAFE */}
+                            <img
+                                src="/hero.webp"
+                                alt="Profile placeholder"
+                                fetchPriority="high"
+                                loading="eager"
+                                className="absolute inset-0 w-full h-full object-cover"
+                            />
+
+                            {/* REAL IMAGE — LOADS LATER */}
+                            {profile.image && profile.image !== "/hero.webp" && (
                                 <img
                                     src={profile.image}
                                     alt="Hostel"
-                                    className="w-full h-full object-cover"
+                                    className="absolute inset-0 w-full h-full object-cover animate-fadeIn z-10"
                                     referrerPolicy="no-referrer"
                                 />
-                            ) : (
-                                <>
+                            )}
+
+                            {!profile.image && (
+                                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm">
                                     <ImageIcon className="w-8 h-8 mb-2" />
                                     <span className="text-xs font-medium">Upload Image</span>
-                                </>
+                                </div>
                             )}
-                            <input type="file" onChange={handleImageChange} accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" />
+
+                            <input type="file" onChange={handleImageChange} accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer z-30" />
                         </div>
                         <p className="text-xs text-slate-400 mt-2 text-center">
                             Supported: JPG, PNG (Max 5MB)

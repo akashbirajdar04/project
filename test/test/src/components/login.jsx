@@ -15,7 +15,7 @@ export const Login = () => {
     setIsLoading(true);
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/login`, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || "https://managment-frontends-1.onrender.com"}/login`, {
         email,
         password,
       });

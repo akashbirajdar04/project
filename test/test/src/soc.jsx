@@ -9,15 +9,24 @@ export const PrivateChat = () => {
   const currentUserId = localStorage.getItem("Id");
 
   useEffect(() => {
-    // Join a room for this chat
-    if (currentUserId && userId) {
-      socket.emit("join_room", { sender: currentUserId, receiver: userId });
-    }
+    // Helper to join room
+    const joinRoom = () => {
+      if (currentUserId && userId) {
+        console.log("🔌 Joining room:", { sender: currentUserId, receiver: userId });
+        socket.emit("join_room", { sender: currentUserId, receiver: userId });
+      }
+    };
+
+    // Join immediately if connected
+    if (socket.connected) joinRoom();
+
+    // Re-join on reconnection (fixes "refresh to see" issue)
+    socket.on("connect", joinRoom);
 
     // Fetch previous messages
     const fetchMessages = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/Profile/messages/getAll`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL || "https://managment-frontends-1.onrender.com"}/Profile/messages/getAll`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -34,15 +43,25 @@ export const PrivateChat = () => {
 
     fetchMessages();
 
-    // Listen for incoming messages via socket
-    socket.on("receive_message", (msg) => {
-      setMessages((prev) => [...prev, msg]);
-    });
+    // Listen for incoming messages
+    const handleReceiveMessage = (msg) => {
+      console.log("📩 New message received:", msg);
+      // Only add if it belongs to this chat to avoid cross-talk
+      const isRelated = (msg.sender === userId && msg.receiver === currentUserId) ||
+        (msg.sender === currentUserId && msg.receiver === userId) ||
+        (msg.sender?._id === userId) || (msg.sender?._id === currentUserId);
+
+      if (isRelated) {
+        setMessages((prev) => [...prev, msg]);
+      }
+    };
+
+    socket.on("receive_message", handleReceiveMessage);
 
     // Mark messages as read
     const markRead = async () => {
       try {
-        await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/Profile/messages/markRead`, {
+        await fetch(`${import.meta.env.VITE_API_URL || "https://managment-frontends-1.onrender.com"}/Profile/messages/markRead`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -64,7 +83,10 @@ export const PrivateChat = () => {
       markRead();
     }
 
-    return () => socket.off("receive_message");
+    return () => {
+      socket.off("connect", joinRoom);
+      socket.off("receive_message", handleReceiveMessage);
+    };
   }, [currentUserId, userId]);
 
   const sendMessage = () => {
