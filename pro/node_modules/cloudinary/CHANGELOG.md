@@ -1,3 +1,11 @@
+2.9.0 / 2026-01-16
+==================
+
+ * chore: url parse replaced by native url + multiple fixes and rewrites (#730)
+  * Fix: use native promises, closes #711, closes #686
+  * feat: add support for dedicated_for parameter in update_access_key (#723)
+  * feat: add allow_dynamic_list_values parameter support to add_metadata… (#724)
+
 2.8.0 / 2025-10-20
 ==================
 
