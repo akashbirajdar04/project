@@ -22,10 +22,34 @@ import PollRoute from '../routes/poll-route.js';
 import RateLimiter from '../controllers/ratelimit.js';
 import PaymentRoute from '../routes/payment-route.js';
 
+const allowedOrigins = [
+  "https://hosteldine-six.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "http://localhost:5174",
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin) || process.env.CORS_ORIGIN === "*") {
+      return callback(null, origin);
+    }
+    // Dynamic fallback to reflect origin and allow frontend requests
+    return callback(null, origin);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
+  optionsSuccessStatus: 200,
+};
+
 const app = express();
-app.use(cors());
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
-app.use(RateLimiter(60, 100))
+app.use(RateLimiter(60, 100));
 
 app.get("/health", (req, res) => {
   res.status(200).send("OK");
@@ -54,7 +78,8 @@ export const server = http.createServer(app);
 // ✅ Setup Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: (origin, callback) => callback(null, origin || "*"),
+    credentials: true,
     methods: ["GET", "POST"],
   },
 });
