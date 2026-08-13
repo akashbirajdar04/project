@@ -18,7 +18,7 @@ export const Register = () => {
     setIsLoading(true);
 
     axios
-      .post(`${import.meta.env.VITE_API_URL || "https://managment-frontends-1.onrender.com"}/register`, {
+      .post(`${import.meta.env.VITE_API_URL || "https://hosteldine.onrender.com"}/register`, {
         username: name,
         email,
         password,

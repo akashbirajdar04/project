@@ -26,7 +26,7 @@ export const PrivateChat = () => {
     // Fetch previous messages
     const fetchMessages = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL || "https://managment-frontends-1.onrender.com"}/Profile/messages/getAll`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL || "https://hosteldine.onrender.com"}/Profile/messages/getAll`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -61,7 +61,7 @@ export const PrivateChat = () => {
     // Mark messages as read
     const markRead = async () => {
       try {
-        await fetch(`${import.meta.env.VITE_API_URL || "https://managment-frontends-1.onrender.com"}/Profile/messages/markRead`, {
+        await fetch(`${import.meta.env.VITE_API_URL || "https://hosteldine.onrender.com"}/Profile/messages/markRead`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

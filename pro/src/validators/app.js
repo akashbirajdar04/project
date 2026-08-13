@@ -24,10 +24,12 @@ import PaymentRoute from '../routes/payment-route.js';
 
 const allowedOrigins = [
   "https://hosteldine-six.vercel.app",
+  process.env.FRONTEND_URL,
+  process.env.CORS_ORIGIN,
   "http://localhost:5173",
   "http://localhost:3000",
   "http://localhost:5174",
-];
+].filter(Boolean);
 
 const corsOptions = {
   origin: (origin, callback) => {
