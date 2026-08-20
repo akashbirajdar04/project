@@ -3,12 +3,16 @@ import api from "../lib/api";
 import { toast } from "sonner";
 import { Search, Bell, Send, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import debounce from "lodash/debounce";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Badge } from "./ui/badge";
+import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 
 export const Announcements = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState(""); // For API
-  const [inputValue, setInputValue] = useState(""); // For Input UI
+  const [searchQuery, setSearchQuery] = useState("");
+  const [inputValue, setInputValue] = useState("");
   const [scopeFilter, setScopeFilter] = useState("all");
   const [form, setForm] = useState({ title: "", body: "", scope: "global" });
   const [page, setPage] = useState(1);
@@ -37,15 +41,13 @@ export const Announcements = () => {
 
   useEffect(() => {
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, scopeFilter, page]);
 
-  // Memoize the debounced function
   const debouncedSearch = useMemo(
     () =>
       debounce((val) => {
         setSearchQuery(val);
-        setPage(1); // Reset to page 1 on search
+        setPage(1);
       }, 400),
     []
   );
@@ -58,10 +60,9 @@ export const Announcements = () => {
 
   const handleScopeChange = (e) => {
     setScopeFilter(e.target.value);
-    setPage(1); // Reset to page 1 on filter change
+    setPage(1);
   };
 
-  // Cleanup
   useEffect(() => {
     return () => {
       debouncedSearch.cancel();
@@ -81,39 +82,39 @@ export const Announcements = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto space-y-6 animate-fadeIn">
       {/* Header with title and filters */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-blue-100 rounded-xl text-blue-600">
-            <Bell className="w-6 h-6" />
+          <div className="p-2.5 bg-indigo-50 border border-indigo-100 rounded-xl text-indigo-600">
+            <Bell className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Announcements</h1>
-            <p className="text-slate-500 text-sm">Stay updated with latest news</p>
+            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">Announcements</h1>
+            <p className="text-xs text-slate-500">Stay updated with official campus notifications</p>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2.5 w-full md:w-auto">
           <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-slate-400" />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <Search className="h-4 w-4" />
             </div>
-            <input
+            <Input
               type="text"
               value={inputValue}
               onChange={handleInputChange}
-              placeholder="Search..."
-              className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg leading-5 bg-white placeholder-slate-400 focus:outline-none focus:placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
+              placeholder="Search announcements..."
+              className="pl-9 w-full sm:w-64"
             />
           </div>
 
           <select
             value={scopeFilter}
             onChange={handleScopeChange}
-            className="block w-full md:w-40 pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg"
+            className="flex h-9 w-full sm:w-36 rounded-lg border border-slate-200 bg-white px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/30 text-slate-700"
           >
-            <option value="all">All</option>
+            <option value="all">All Scopes</option>
             <option value="global">Global</option>
             <option value="hostel">Hostel</option>
             <option value="block">Block</option>
@@ -123,148 +124,145 @@ export const Announcements = () => {
       </div>
 
       {/* Create Announcement Form */}
-      {(role === "warden" || role === "hostelowner" || role === "messowner") && (
-        <div className="bg-white shadow-sm border border-slate-200 rounded-xl mb-8 overflow-hidden">
-          <div className="px-6 py-4 bg-slate-50 border-b border-slate-100">
-            <h3 className="text-lg font-semibold text-slate-800">Create New Announcement</h3>
-          </div>
-          <form onSubmit={onCreate} className="p-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-              <div className="md:col-span-5">
-                <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-1">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  id="title"
-                  value={form.title}
-                  onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                  className="block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 border px-3"
-                  placeholder="Announcement title"
-                  required
-                />
-              </div>
-
-              <div className="md:col-span-3">
-                <label htmlFor="scope" className="block text-sm font-medium text-slate-700 mb-1">
-                  Scope
-                </label>
-                <select
-                  id="scope"
-                  value={form.scope}
-                  onChange={(e) => setForm((f) => ({ ...f, scope: e.target.value }))}
-                  className="block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 border px-3"
-                >
-                  <option value="global">Global</option>
-                  <option value="hostel">Hostel</option>
-                  <option value="block">Block</option>
-                  <option value="mess">Mess</option>
-                </select>
-              </div>
-
-              <div className="md:col-span-4">
-                <label htmlFor="message" className="block text-sm font-medium text-slate-700 mb-1">
-                  Message
-                </label>
-                <div className="flex rounded-lg shadow-sm">
-                  <input
-                    type="text"
-                    id="message"
-                    value={form.body}
-                    onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))}
-                    className="flex-1 block w-full rounded-l-lg border-slate-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm border px-3 py-2.5"
-                    placeholder="Enter message"
+      {(role === "warden" || role === "hostelowner" || role === "messowner" || role === "admin") && (
+        <Card className="overflow-hidden">
+          <CardHeader className="bg-slate-50/60 py-3 border-b border-slate-100">
+            <CardTitle className="text-sm font-semibold text-slate-800">Publish Announcement</CardTitle>
+          </CardHeader>
+          <CardContent className="p-5">
+            <form onSubmit={onCreate} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                <div className="md:col-span-5">
+                  <label htmlFor="title" className="block text-xs font-medium text-slate-700 mb-1">
+                    Title
+                  </label>
+                  <Input
+                    id="title"
+                    value={form.title}
+                    onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                    placeholder="Announcement title"
                     required
                   />
-                  <button
-                    type="submit"
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-r-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                </div>
+
+                <div className="md:col-span-3">
+                  <label htmlFor="scope" className="block text-xs font-medium text-slate-700 mb-1">
+                    Scope
+                  </label>
+                  <select
+                    id="scope"
+                    value={form.scope}
+                    onChange={(e) => setForm((f) => ({ ...f, scope: e.target.value }))}
+                    className="flex h-9 w-full rounded-lg border border-slate-200 bg-white px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/30 text-slate-700"
                   >
-                    <Send className="-ml-1 mr-2 h-4 w-4" />
-                    Publish
-                  </button>
+                    <option value="global">Global</option>
+                    <option value="hostel">Hostel</option>
+                    <option value="block">Block</option>
+                    <option value="mess">Mess</option>
+                  </select>
+                </div>
+
+                <div className="md:col-span-4">
+                  <label htmlFor="message" className="block text-xs font-medium text-slate-700 mb-1">
+                    Message
+                  </label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="message"
+                      value={form.body}
+                      onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))}
+                      placeholder="Message content"
+                      required
+                    />
+                    <Button type="submit" variant="primary" className="shrink-0">
+                      <Send className="h-3.5 w-3.5 mr-1.5" />
+                      Publish
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </form>
-        </div>
+            </form>
+          </CardContent>
+        </Card>
       )}
 
       {/* Announcements List */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-12 bg-white rounded-xl border border-slate-200 border-dashed">
-            <Loader2 className="h-10 w-10 text-blue-600 animate-spin" />
-            <p className="mt-2 text-sm text-slate-500">Loading announcements...</p>
+          <div className="flex flex-col items-center justify-center py-12 bg-white rounded-xl border border-slate-200/80">
+            <Loader2 className="h-6 w-6 text-indigo-600 animate-spin mb-2" />
+            <p className="text-xs text-slate-500">Loading announcements...</p>
           </div>
         ) : items.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-xl border border-slate-200 border-dashed">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-slate-100">
-              <Bell className="h-6 w-6 text-slate-400" />
+          <Card className="text-center py-12">
+            <div className="mx-auto flex items-center justify-center h-10 w-10 rounded-full bg-slate-100 mb-3">
+              <Bell className="h-5 w-5 text-slate-400" />
             </div>
-            <h3 className="mt-2 text-sm font-medium text-slate-900">No announcements</h3>
-            <p className="mt-1 text-sm text-slate-500">
-              {inputValue ? 'No announcements match your search.' : 'Get started by creating a new announcement.'}
+            <h3 className="text-sm font-medium text-slate-900">No announcements found</h3>
+            <p className="text-xs text-slate-500 mt-1">
+              {inputValue ? 'No announcements match your search.' : 'No announcements published yet.'}
             </p>
-          </div>
+          </Card>
         ) : (
           <>
-            <div className="grid gap-4">
+            <div className="space-y-3">
               {items.map((item) => (
-                <div key={item._id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow duration-200">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-                        <Bell className="h-5 w-5" />
+                <Card key={item._id} className="p-5">
+                  <div className="flex items-start gap-3.5">
+                    <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+                      <Bell className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-semibold text-slate-900">
+                          {item.postedBy?.name || 'System'}
+                        </span>
+                        <Badge variant="secondary" className="capitalize text-[10px] py-0">
+                          {item.scope}
+                        </Badge>
+                        <span className="text-[11px] text-slate-400">
+                          • {new Date(item.createdAt).toLocaleDateString()}
+                        </span>
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm font-semibold text-slate-900">
-                            {item.postedBy?.name || 'System'}
-                          </span>
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 capitalize">
-                            {item.scope}
-                          </span>
-                          <span className="text-xs text-slate-400">
-                            • {new Date(item.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <h4 className="text-base font-bold text-slate-800 mb-1">{item.title}</h4>
-                        <p className="text-sm text-slate-600 whitespace-pre-line leading-relaxed">{item.body}</p>
-                      </div>
+                      <h4 className="text-sm font-semibold text-slate-800 mb-1">{item.title}</h4>
+                      <p className="text-xs text-slate-600 whitespace-pre-line leading-relaxed">{item.body}</p>
                     </div>
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
 
             {/* Pagination Controls */}
-            <div className="flex items-center justify-between mt-6 border-t border-slate-200 pt-4">
-              <button
+            <div className="flex items-center justify-between pt-2">
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1 || loading}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <ChevronLeft size={16} />
+                <ChevronLeft className="h-4 w-4 mr-1" />
                 Previous
-              </button>
+              </Button>
 
-              <span className="text-sm text-slate-600 font-medium">
-                Page {page} of {totalPages} ({totalAnnouncements} items)
+              <span className="text-xs text-slate-500">
+                Page {page} of {totalPages} ({totalAnnouncements} announcements)
               </span>
 
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages || loading}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
-                <ChevronRight size={16} />
-              </button>
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
             </div>
           </>
         )}
       </div>
     </div>
   );
-}
+};
+
+export default Announcements;

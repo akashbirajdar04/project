@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import api from "../lib/api";
 import { toast } from "sonner";
 import { AlertCircle, CheckCircle, Clock, MessageSquare, Send, Loader2 } from "lucide-react";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Badge } from "./ui/badge";
+import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 
 export const Complaints = () => {
   const [items, setItems] = useState([]);
@@ -23,7 +27,6 @@ export const Complaints = () => {
 
   useEffect(() => {
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onCreate = async (e) => {
@@ -31,10 +34,10 @@ export const Complaints = () => {
     try {
       await api.post("/complaints", { ...form, userId });
       setForm({ ...form, description: "" });
-      toast.success("Ticket created");
+      toast.success("Ticket created successfully");
       await fetchData();
     } catch (e) {
-      toast.error(e?.response?.data?.message || "Failed to create");
+      toast.error(e?.response?.data?.message || "Failed to create ticket");
     }
   };
 
@@ -59,98 +62,98 @@ export const Complaints = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
+    <div className="max-w-5xl mx-auto space-y-6 animate-fadeIn">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Complaints & Support</h1>
-        <p className="text-slate-500 text-sm mt-1">Raise tickets for any issues you face</p>
+        <h1 className="text-xl font-semibold text-slate-900 tracking-tight">Complaints & Support</h1>
+        <p className="text-xs text-slate-500 mt-1">Submit tickets for facility maintenance, housekeeping, or room issues</p>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4">Create New Ticket</h3>
-        <form onSubmit={onCreate} className="grid grid-cols-1 md:grid-cols-12 gap-4">
-          <div className="md:col-span-3">
-            <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
-            <select
-              value={form.category}
-              onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-              className="block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 border px-3"
-            >
-              <option value="room">Room</option>
-              <option value="plumbing">Plumbing</option>
-              <option value="electricity">Electricity</option>
-              <option value="housekeeping">Housekeeping</option>
-              <option value="food">Food</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div className="md:col-span-7">
-            <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-            <input
-              value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              placeholder="Describe the issue in detail..."
-              className="block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 border px-3"
-              required
-            />
-          </div>
-          <div className="md:col-span-2 flex items-end">
-            <button
-              type="submit"
-              className="w-full flex justify-center items-center px-4 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-medium transition-colors shadow-sm"
-            >
-              <Send className="w-4 h-4 mr-2" />
-              Submit
-            </button>
-          </div>
-        </form>
-      </div>
+      <Card>
+        <CardHeader className="py-3 bg-slate-50/60 border-b border-slate-100">
+          <CardTitle className="text-sm font-semibold text-slate-800">Create Support Ticket</CardTitle>
+        </CardHeader>
+        <CardContent className="p-5">
+          <form onSubmit={onCreate} className="grid grid-cols-1 md:grid-cols-12 gap-3">
+            <div className="md:col-span-3">
+              <label className="block text-xs font-medium text-slate-700 mb-1">Category</label>
+              <select
+                value={form.category}
+                onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+                className="flex h-9 w-full rounded-lg border border-slate-200 bg-white px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/30 text-slate-800"
+              >
+                <option value="room">Room</option>
+                <option value="plumbing">Plumbing</option>
+                <option value="electricity">Electricity</option>
+                <option value="housekeeping">Housekeeping</option>
+                <option value="food">Food</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div className="md:col-span-7">
+              <label className="block text-xs font-medium text-slate-700 mb-1">Description</label>
+              <Input
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                placeholder="Describe the issue in detail..."
+                required
+              />
+            </div>
+            <div className="md:col-span-2 flex items-end">
+              <Button type="submit" variant="primary" className="w-full">
+                <Send className="w-3.5 h-3.5 mr-1.5" />
+                Submit
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-slate-800">Your Tickets</h3>
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold text-slate-900">Your Tickets</h3>
         {loading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+          <div className="flex flex-col items-center justify-center py-12 bg-white rounded-xl border border-slate-200/80">
+            <Loader2 className="h-6 w-6 text-indigo-600 animate-spin mb-2" />
+            <p className="text-xs text-slate-500">Loading tickets...</p>
           </div>
         ) : items.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl border border-slate-200 border-dashed">
-            <AlertCircle className="mx-auto h-10 w-10 text-slate-300 mb-3" />
-            <p className="text-slate-500">No tickets found</p>
-          </div>
+          <Card className="text-center py-12">
+            <AlertCircle className="mx-auto h-8 w-8 text-slate-300 mb-2" />
+            <p className="text-xs text-slate-500">No support tickets created yet.</p>
+          </Card>
         ) : (
-          <div className="grid gap-4">
+          <div className="space-y-3">
             {items.map((t) => (
-              <div key={t._id} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+              <Card key={t._id} className="p-5">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${t.status === 'resolved' ? 'bg-green-100 text-green-600' :
-                      t.status === 'closed' ? 'bg-slate-100 text-slate-600' :
-                        'bg-blue-100 text-blue-600'
-                      }`}>
-                      {t.status === 'resolved' ? <CheckCircle size={20} /> : <Clock size={20} />}
+                    <div className={`p-2 rounded-lg border ${
+                      t.status === 'resolved'
+                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                        : t.status === 'closed'
+                        ? 'bg-slate-100 text-slate-600 border-slate-200'
+                        : 'bg-indigo-50 text-indigo-600 border-indigo-100'
+                    }`}>
+                      {t.status === 'resolved' ? <CheckCircle size={18} /> : <Clock size={18} />}
                     </div>
                     <div>
-                      <h4 className="font-semibold text-slate-900 capitalize">{t.category} Issue</h4>
-                      <p className="text-xs text-slate-500">{new Date(t.createdAt).toLocaleString()}</p>
+                      <h4 className="text-sm font-semibold text-slate-900 capitalize">{t.category} Issue</h4>
+                      <p className="text-[11px] text-slate-400">{new Date(t.createdAt).toLocaleString()}</p>
                     </div>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-medium border capitalize ${t.status === 'resolved' ? 'bg-green-50 text-green-700 border-green-200' :
-                    t.status === 'closed' ? 'bg-slate-50 text-slate-700 border-slate-200' :
-                      'bg-blue-50 text-blue-700 border-blue-200'
-                    }`}>
+                  <Badge variant={t.status === 'resolved' ? 'success' : t.status === 'closed' ? 'secondary' : 'info'} className="capitalize">
                     {t.status?.replace("_", " ")}
-                  </span>
+                  </Badge>
                 </div>
 
-                <p className="text-slate-700 mb-4 ml-12">{t.description}</p>
+                <p className="text-xs text-slate-600 mb-4 pl-11 leading-relaxed">{t.description}</p>
 
-                <div className="ml-12 pt-4 border-t border-slate-100">
-                  {/* Status control - simplified for demo, usually admin only */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Update Status:</label>
+                <div className="pl-11 pt-3 border-t border-slate-100 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Status:</span>
                     <select
                       defaultValue={t.status}
                       onChange={(e) => updateStatus(t._id, e.target.value)}
-                      className="px-2 py-1 rounded border border-slate-300 text-xs bg-slate-50 focus:ring-blue-500 focus:border-blue-500"
+                      className="px-2 py-1 rounded-md border border-slate-200 text-xs bg-slate-50 text-slate-700"
                     >
                       <option value="open">Open</option>
                       <option value="in_progress">In Progress</option>
@@ -159,17 +162,16 @@ export const Complaints = () => {
                     </select>
                   </div>
 
-                  {/* Feedback */}
                   <FeedbackSection ticket={t} onSubmit={submitFeedback} />
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         )}
       </div>
     </div>
   );
-}
+};
 
 const FeedbackSection = ({ ticket, onSubmit }) => {
   const [rating, setRating] = useState(ticket.feedback?.rating ?? 5);
@@ -178,40 +180,44 @@ const FeedbackSection = ({ ticket, onSubmit }) => {
   const isLocked = ticket.status !== 'resolved' && ticket.status !== 'closed';
 
   return (
-    <div className="bg-slate-50 rounded-lg p-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-slate-800">
-          <MessageSquare size={16} className="text-slate-500" />
+    <div className="bg-slate-50/80 rounded-lg p-3 border border-slate-100">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-1.5 text-xs font-medium text-slate-700">
+          <MessageSquare size={14} className="text-slate-400" />
           Feedback
         </div>
         {ticket.feedback && (
-          <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-200">Saved</span>
+          <Badge variant="success" className="text-[10px] py-0">Submitted</Badge>
         )}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
         <select
           value={rating}
           onChange={(e) => setRating(Number(e.target.value))}
           disabled={isLocked}
-          className="md:col-span-2 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500"
+          className="md:col-span-3 px-2 py-1 rounded-md border border-slate-200 text-xs bg-white text-slate-700"
         >
-          {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} ⭐</option>)}
+          {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Stars ⭐</option>)}
         </select>
-        <input
+        <Input
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           disabled={isLocked}
-          placeholder={isLocked ? "Feedback enabled after resolution" : "Write your feedback..."}
-          className="md:col-span-8 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:ring-blue-500 focus:border-blue-500"
+          placeholder={isLocked ? "Feedback available after resolution" : "Write your feedback..."}
+          className="md:col-span-7 h-8 text-xs"
         />
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => onSubmit(ticket._id, rating, comment)}
           disabled={!canSend || isLocked}
-          className="md:col-span-2 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+          className="md:col-span-2 h-8 text-xs"
         >
           Submit
-        </button>
+        </Button>
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default Complaints;

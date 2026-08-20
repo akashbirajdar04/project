@@ -53,7 +53,10 @@ app.use(express.json());
 app.use(RateLimiter(60, 100));
 
 app.get("/health", (req, res) => {
-  res.status(200).send("OK");
+  res.status(200).json({
+    status: "ok",
+    message: "Server is running"
+  });
 });
 
 app.use('/', AuthRoute)

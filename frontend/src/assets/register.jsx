@@ -1,9 +1,11 @@
 import axios from "axios";
 import { useState } from "react";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "sonner";
 import { useNavigate, Link } from "react-router-dom";
-import { User, Mail, Lock, Shield } from "lucide-react";
+import { User, Mail, Lock, Shield, UserPlus } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "../components/ui/card";
 
 export const Register = () => {
   const [name, setname] = useState("");
@@ -26,20 +28,19 @@ export const Register = () => {
       })
       .then((res) => {
         localStorage.setItem("accessToken", res.data.accessToken);
-        toast.success(res.data.message || "Registration Successful!");
+        toast.success(res.data.message || "Registration successful!");
         navigate("/login");
       })
       .catch((err) => {
         console.error(err);
         const responseData = err.response?.data;
         if (responseData?.errors && Array.isArray(responseData.errors)) {
-          // Extract and display specific validation errors
           responseData.errors.forEach(errorObj => {
             const msg = Object.values(errorObj)[0];
             toast.error(msg);
           });
         } else {
-          toast.error(responseData?.message || "Try again!");
+          toast.error(responseData?.message || "Registration failed!");
         }
       })
       .finally(() => {
@@ -48,105 +49,113 @@ export const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-8 md:p-10">
-        <div className="text-center space-y-2 mb-8">
-          <h2 className="text-3xl font-bold text-slate-900">Create Account</h2>
-          <p className="text-slate-500">Join the platform to manage hostels and mess services</p>
-        </div>
-
-        <form onSubmit={handlesubmit} className="space-y-5">
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-slate-700">Full Name</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <User className="h-5 w-5 text-slate-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="John Doe"
-                value={name}
-                onChange={(e) => setname(e.target.value)}
-                required
-                className="w-full pl-10 pr-4 py-3 rounded-lg bg-white text-slate-900 placeholder-slate-400 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-              />
-            </div>
+    <div className="min-h-screen bg-slate-50/60 flex items-center justify-center p-4 md:p-6 animate-fadeIn">
+      <Card className="w-full max-w-md bg-white border-slate-200/80 shadow-lg/40 p-0 overflow-hidden">
+        <CardHeader className="text-center pb-2 bg-gradient-to-b from-slate-50 to-white pt-8">
+          <div className="mx-auto w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 mb-2">
+            <UserPlus className="w-5 h-5" />
           </div>
+          <CardTitle className="text-xl font-semibold text-slate-900 tracking-tight">Create an account</CardTitle>
+          <CardDescription className="text-xs text-slate-500">
+            Join CampusLife platform to manage or access services
+          </CardDescription>
+        </CardHeader>
 
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-slate-700">Email Address</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-slate-400" />
+        <CardContent className="p-6 pt-4">
+          <form onSubmit={handlesubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-slate-700">Full Name</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                  <User className="h-4 w-4" />
+                </div>
+                <Input
+                  type="text"
+                  placeholder="John Doe"
+                  value={name}
+                  onChange={(e) => setname(e.target.value)}
+                  required
+                  className="pl-9"
+                />
               </div>
-              <input
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setemail(e.target.value)}
-                required
-                className="w-full pl-10 pr-4 py-3 rounded-lg bg-white text-slate-900 placeholder-slate-400 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-              />
             </div>
-          </div>
 
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-slate-700">Password</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-slate-400" />
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-slate-700">Email Address</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                  <Mail className="h-4 w-4" />
+                </div>
+                <Input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setemail(e.target.value)}
+                  required
+                  className="pl-9"
+                />
               </div>
-              <input
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setpassword(e.target.value)}
-                required
-                className="w-full pl-10 pr-4 py-3 rounded-lg bg-white text-slate-900 placeholder-slate-400 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-              />
             </div>
-          </div>
 
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-slate-700">Role</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Shield className="h-5 w-5 text-slate-400" />
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-slate-700">Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                  <Lock className="h-4 w-4" />
+                </div>
+                <Input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setpassword(e.target.value)}
+                  required
+                  className="pl-9"
+                />
               </div>
-              <select
-                value={role}
-                onChange={(e) => setrole(e.target.value)}
-                required
-                className="w-full pl-10 pr-4 py-3 rounded-lg bg-white text-slate-900 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition appearance-none"
-              >
-                <option value="">Select Role</option>
-                <option value="student">Student</option>
-                <option value="messowner">Mess Owner</option>
-                <option value="hostelowner">Hostel Owner</option>
-              </select>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full py-3 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
-          >
-            {isLoading ? "Creating Account..." : "Create Account"}
-          </button>
-        </form>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-slate-700">Select Role</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                  <Shield className="h-4 w-4" />
+                </div>
+                <select
+                  value={role}
+                  onChange={(e) => setrole(e.target.value)}
+                  required
+                  className="flex h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/30 focus-visible:border-indigo-500 text-slate-800"
+                >
+                  <option value="">Choose a role</option>
+                  <option value="student">Student</option>
+                  <option value="messowner">Mess Owner</option>
+                  <option value="hostelowner">Hostel Owner</option>
+                </select>
+              </div>
+            </div>
 
-        <div className="mt-6 text-center text-sm">
-          <p className="text-slate-600">
-            Already have an account?{' '}
-            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={isLoading}
+              className="w-full mt-2"
+            >
+              {isLoading ? "Creating Account..." : "Create Account"}
+            </Button>
+          </form>
+        </CardContent>
+
+        <CardFooter className="justify-center border-t border-slate-100 py-4 bg-slate-50/50">
+          <p className="text-xs text-slate-500">
+            Already registered?{' '}
+            <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
               Sign in
             </Link>
           </p>
-        </div>
-      </div>
-
-      <ToastContainer position="top-right" autoClose={3000} />
+        </CardFooter>
+      </Card>
     </div>
   );
 };
+
+export default Register;

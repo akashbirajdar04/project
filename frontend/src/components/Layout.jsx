@@ -16,9 +16,13 @@ import {
     UtensilsCrossed,
     Users,
     Search,
-    Star
+    Star,
+    Shield
 } from 'lucide-react';
 import NotificationBell from './common/NotificationBell';
+import { Avatar, AvatarFallback } from './ui/avatar';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
 
 const Layout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -29,12 +33,14 @@ const Layout = () => {
     const handleLogout = () => {
         localStorage.removeItem("accessToken");
         localStorage.removeItem("userId");
+        localStorage.removeItem("role");
         navigate("/login");
     };
 
     const [enrolledMess, setEnrolledMess] = useState(null);
     const [enrolledHostel, setEnrolledHostel] = useState(null);
     const userId = localStorage.getItem("Id");
+    const role = localStorage.getItem("role") || "student";
 
     useEffect(() => {
         const checkEnrollment = async () => {
@@ -52,8 +58,6 @@ const Layout = () => {
         };
         checkEnrollment();
     }, [userId]);
-
-    const role = localStorage.getItem("role");
 
     const studentNav = [
         { to: "/Profile", icon: Home, label: "Dashboard" },
@@ -89,7 +93,7 @@ const Layout = () => {
         { to: "/Profile/polls", icon: FileText, label: "Polls" },
         { to: "/Profile/requests", icon: FileText, label: "Requests" },
         { to: "/Profile/hostel-structure", icon: Building2, label: "Structure" },
-        { to: "/Profile/hostel-allocation", icon: User, label: "Allocation" }, // Reusing User icon for now
+        { to: "/Profile/hostel-allocation", icon: User, label: "Allocation" },
         { to: "/Profile/acceptedreq", icon: FileText, label: "Accepted Requests" },
         { to: "/Profile/messege", icon: MessageSquare, label: "Messages" },
     ];
@@ -111,9 +115,6 @@ const Layout = () => {
         navItems = studentNav;
     }
 
-    // Check if user is admin/owner to show more links (simplified logic for now)
-    // You might want to add more conditional links here based on user role
-
     const [unreadChatterCount, setUnreadChatterCount] = useState(0);
 
     useEffect(() => {
@@ -130,116 +131,117 @@ const Layout = () => {
         };
 
         fetchUnreadCount();
-
-        // Listen for new notifications to update count
-        // Note: Ideally, we should check if the sender is already counted, 
-        // but for simplicity, we can just re-fetch or increment if we assume it's a new chatter.
-        // Re-fetching is safer to avoid sync issues.
-        const handleNewNotification = () => {
-            fetchUnreadCount();
-        };
-
-        // Also listen for when we read messages (if we emit an event for that, or just rely on navigation)
-        // For now, we rely on the fact that navigating to a chat will eventually trigger a re-fetch if we add it to dependency
-        // or we can expose a global context. 
-        // A simple way is to re-fetch on location change if we are navigating away from a chat?
-        // Or just re-fetch periodically. 
-        // Let's stick to socket for increments. Decrements happen when we open a chat, 
-        // but Layout doesn't know when that happens easily without context.
-        // We can add a custom event listener for "messagesRead".
-
         const handleMessagesRead = () => fetchUnreadCount();
-
         window.addEventListener("messagesRead", handleMessagesRead);
-        // Assuming socket is imported or available via context. 
-        // Layout doesn't import socket directly in the original file, checking imports...
-        // It imports NotificationBell which uses socket. 
-        // We might need to import socket here or rely on NotificationBell to trigger an update?
-        // Let's import socket.
 
         return () => {
             window.removeEventListener("messagesRead", handleMessagesRead);
         };
     }, [userId]);
 
-    // ... (rest of the nav logic)
+    const formattedRole = role === 'messowner' ? 'Mess Owner' : role === 'hostelowner' ? 'Hostel Owner' : role === 'admin' ? 'Admin' : 'Student';
 
     return (
-        <div className="flex h-screen bg-slate-50">
+        <div className="flex h-screen bg-slate-50/60 overflow-hidden font-sans">
             {/* Sidebar - Desktop */}
-            <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 flex flex-col`}>
-                <div className="flex items-center justify-between h-16 px-6 border-b border-slate-100 flex-shrink-0">
-                    <span className="text-2xl font-bold text-blue-600">CampusLife</span>
-                    <button onClick={toggleSidebar} className="md:hidden text-slate-500 hover:text-blue-600">
-                        <X size={24} />
+            <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200/80 shadow-xs transform transition-transform duration-200 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 flex flex-col`}>
+                <div className="flex items-center justify-between h-16 px-5 border-b border-slate-100 flex-shrink-0">
+                    <div className="flex items-center space-x-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-semibold text-sm shadow-xs">
+                            CL
+                        </div>
+                        <span className="text-lg font-semibold text-slate-900 tracking-tight">CampusLife</span>
+                    </div>
+                    <button onClick={toggleSidebar} className="md:hidden text-slate-400 hover:text-slate-600 p-1">
+                        <X size={20} />
                     </button>
                 </div>
 
-                <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
+                <div className="px-4 py-3 border-b border-slate-100/80">
+                    <div className="flex items-center space-x-3 p-2 rounded-lg bg-slate-50 border border-slate-200/60">
+                        <Avatar className="h-8 w-8">
+                            <AvatarFallback>{role.charAt(0).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                            <p className="text-xs font-medium text-slate-900 truncate">Account</p>
+                            <p className="text-[11px] text-slate-500 capitalize">{formattedRole}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <nav className="p-3 space-y-1 flex-1 overflow-y-auto">
                     {navItems.map((item) => (
                         <NavLink
                             key={item.label}
                             to={item.to}
+                            onClick={() => setIsSidebarOpen(false)}
                             className={({ isActive }) =>
-                                `flex items-center justify-between px-4 py-3 rounded-lg transition-colors duration-200 ${isActive
-                                    ? "bg-blue-50 text-blue-600 font-medium"
-                                    : "text-slate-600 hover:bg-slate-50 hover:text-blue-600"
+                                `flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 ${isActive
+                                    ? "bg-indigo-50 text-indigo-600 font-semibold"
+                                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                                 }`
                             }
                         >
                             <div className="flex items-center">
-                                <item.icon size={20} className="mr-3" />
-                                {item.label}
+                                <item.icon size={16} className="mr-2.5 shrink-0 opacity-80" />
+                                <span>{item.label}</span>
                             </div>
                             {item.label === "Messages" && unreadChatterCount > 0 && (
-                                <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                                <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">
                                     {unreadChatterCount}
-                                </span>
+                                </Badge>
                             )}
                         </NavLink>
                     ))}
-
-                    <div className="mt-2">
-                        <button
-                            onClick={handleLogout}
-                            className="flex items-center w-full px-4 py-3 text-slate-600 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
-                        >
-                            <LogOut size={20} className="mr-3" />
-                            Logout
-                        </button>
-                    </div>
                 </nav>
+
+                <div className="p-3 border-t border-slate-100">
+                    <Button
+                        variant="ghost"
+                        onClick={handleLogout}
+                        className="w-full justify-start text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700 h-9"
+                    >
+                        <LogOut size={16} className="mr-2.5" />
+                        Sign Out
+                    </Button>
+                </div>
             </aside>
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Topbar */}
-                <header className="flex items-center justify-between h-16 px-6 bg-white shadow-sm border-b border-slate-100">
-                    <button onClick={toggleSidebar} className="md:hidden text-slate-500 hover:text-blue-600">
-                        <Menu size={24} />
+                <header className="flex items-center justify-between h-16 px-6 bg-white border-b border-slate-200/80 shadow-xs z-10">
+                    <button onClick={toggleSidebar} className="md:hidden text-slate-500 hover:text-slate-700 p-1">
+                        <Menu size={20} />
                     </button>
 
-                    <div className="flex items-center space-x-4 ml-auto">
+                    <div className="flex items-center space-x-3 ml-auto">
                         <NotificationBell />
-                        <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                                U
+                        <div className="h-4 w-px bg-slate-200"></div>
+                        <div className="flex items-center space-x-2.5 pl-1">
+                            <Avatar className="h-8 w-8 border-slate-200">
+                                <AvatarFallback className="bg-indigo-50 text-indigo-600 text-xs">U</AvatarFallback>
+                            </Avatar>
+                            <div className="hidden sm:block text-left">
+                                <span className="block text-xs font-medium text-slate-800">User Dashboard</span>
+                                <span className="block text-[10px] text-slate-400 uppercase tracking-wider">{role}</span>
                             </div>
-                            <span className="text-sm font-medium text-slate-700 hidden sm:block">User</span>
                         </div>
                     </div>
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 overflow-y-auto p-6">
-                    <Outlet />
+                <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50/50">
+                    <div className="max-w-7xl mx-auto animate-fadeIn">
+                        <Outlet />
+                    </div>
                 </main>
             </div>
 
             {/* Overlay for mobile sidebar */}
             {isSidebarOpen && (
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+                    className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs z-40 md:hidden"
                     onClick={toggleSidebar}
                 ></div>
             )}
