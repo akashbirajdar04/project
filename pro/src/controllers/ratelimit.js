@@ -7,6 +7,7 @@ export default function RateLimiter(windowInSec, maxRequests) {
 
         try {
             if (!ip) return res.status(400).json({ success: false, message: "Invalid request IP" });
+            if (!redisClient.isOpen) return next();
 
             const currentCount = await redisClient.get(key);
 

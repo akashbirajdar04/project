@@ -76,6 +76,16 @@ app.use('/api/v1/meal-feedback', MealFeedbackRoute);
 app.use('/api/v1', PollRoute);
 app.use('/api/payment', PaymentRoute);
 
+// 🛑 Global Error Handler (Ensures all API errors return JSON instead of HTML)
+app.use((err, req, res, next) => {
+  const statusCode = err.statusCode || 500;
+  return res.status(statusCode).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+    errors: err.errors || []
+  });
+});
+
 // ✅ Create HTTP server
 export const server = http.createServer(app);
 
