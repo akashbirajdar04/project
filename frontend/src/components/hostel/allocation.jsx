@@ -25,6 +25,7 @@ const HostelAllocation = () => {
       toast.error(e?.response?.data?.message || "Failed to load structure");
     } finally {
       setLoading(false);
+      console.log("hi");
     }
   };
 
