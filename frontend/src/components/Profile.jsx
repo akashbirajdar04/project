@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { User } from "./user/user.jsx";
 import { Mess } from "./mess/mess.jsx";
 import { Hostel } from "./hostel/hostel.jsx";
@@ -59,7 +60,7 @@ export const Profile = () => {
                 }}
                 className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                Back to Login
+                Log In
               </button>
             </div>
           </div>
@@ -67,9 +68,5 @@ export const Profile = () => {
     }
   };
 
-  return (
-    <div className="w-full h-full">
-      {getComponent()}
-    </div>
-  );
+  return <>{getComponent()}</>;
 };
