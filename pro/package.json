@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node src/validators/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo \"No tests specified yet\" && exit 0",
+    "check": "node --check src/validators/index.js",
     "dev": "node src/validators/index.js",
     "dev:watch": "nodemon src/validators/index.js"
   },

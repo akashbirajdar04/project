@@ -1,0 +1,74 @@
+name: Lint and Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend (Lint & Build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run tests (if present)
+        run: npm test --if-present
+
+      - name: Build frontend
+        run: npm run build
+        env:
+          VITE_API_URL: https://hosteldine.onrender.com
+
+  backend:
+    name: Backend (Check & Test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: pro
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: pro/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check syntax & validation
+        run: npm run check --if-present
+
+      - name: Run tests
+        run: npm test --if-present
