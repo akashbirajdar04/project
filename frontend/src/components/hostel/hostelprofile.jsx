@@ -1,14 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../lib/api";
 import { toast } from "sonner";
-import {
-  Building2,
-  MapPin,
-  Phone,
-  Save,
-  Loader2,
-  Image as ImageIcon,
-} from "lucide-react";
+import { Save, Loader2, Image as ImageIcon } from "lucide-react";
 
 export const Hostelprofile = () => {
   const hostelId = localStorage.getItem("Id");
@@ -33,24 +26,26 @@ export const Hostelprofile = () => {
       if (res.data?.data) {
         const data = { ...res.data.data };
 
-        // Ensure facilities is a string for the input field
         if (Array.isArray(data.facilities)) {
           data.facilities = data.facilities.join(", ");
         }
 
-        // Map avatar.url to image for frontend display
         if (data.avatar && data.avatar.url) {
           data.image = data.avatar.url;
         }
 
         setProfile(data);
       }
-    } catch (e) {
+    } catch (_) {
       toast.error("Failed to load profile");
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    load();
+  }, []);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -69,160 +64,118 @@ export const Hostelprofile = () => {
       setSaving(true);
       const payload = { ...profile };
 
-      // Convert facilities back to array if needed
-      if (payload.facilities) {
+      if (payload.facilities && typeof payload.facilities === "string") {
         payload.facilities = payload.facilities
           .split(",")
           .map((f) => f.trim())
-          .filter(Boolean);
+          .filter((f) => f);
       }
 
-      // If a new image (base64) is present, send it as part of the payload
-      if (payload.image && payload.image.startsWith("data:")) {
-        payload.avatar = payload.image;
-        delete payload.image;
+      const res = await api.put(`/hostel/${hostelId}/profile`, payload);
+      if (res.data?.success) {
+        toast.success("Profile updated successfully");
+        load();
+      } else {
+        toast.error("Failed to update profile");
       }
-
-      await api.put(`/hostel/${hostelId}/profile`, payload);
-      toast.success("Profile updated successfully");
-    } catch (err) {
-      toast.error("Failed to update profile");
+    } catch (_) {
+      toast.error("An error occurred while saving");
     } finally {
       setSaving(false);
     }
   };
 
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-10">
-        <Loader2 className="animate-spin h-8 w-8 text-primary" />
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="animate-spin" />
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto p-4 space-y-4">
+    <form onSubmit={handleSubmit} className="max-w-xl mx-auto p-4 space-y-4">
       <div className="flex items-center space-x-4">
-        {profile.image ? (
-          <img
-            src={profile.image}
-            alt="Hostel"
-            className="w-24 h-24 object-cover rounded"
-          />
-        ) : (
-          <ImageIcon className="w-24 h-24 text-gray-400" />
-        )}
-        <label className="cursor-pointer bg-primary text-white px-3 py-1 rounded">
-          Change Image
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleImageChange}
-          />
+        <div className="w-24 h-24 bg-gray-200 rounded overflow-hidden">
+          {profile.image ? (
+            <img src={profile.image} alt="Hostel" className="w-full h-full object-cover" />
+          ) : (
+            <ImageIcon className="w-12 h-12 text-gray-500 mx-auto mt-6" />
+          )}
+        </div>
+        <label className="cursor-pointer">
+          <span className="text-sm text-blue-600 underline">Change Image</span>
+          <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
         </label>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            <Building2 className="inline-block mr-1" />
-            Name
-          </label>
-          <input
-            type="text"
-            value={profile.name}
-            onChange={(e) =>
-              setProfile((p) => ({ ...p, name: e.target.value }))
-            }
-            className="w-full border rounded px-2 py-1"
-            required
-          />
-        </div>
+      <div>
+        <label className="block text-sm font-medium">Name</label>
+        <input
+          type="text"
+          value={profile.name}
+          onChange={(e) => setProfile((p) => ({ ...p, name: e.target.value }))}
+          className="mt-1 block w-full border rounded p-2"
+          required
+        />
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            <MapPin className="inline-block mr-1" />
-            Address
-          </label>
-          <input
-            type="text"
-            value={profile.address}
-            onChange={(e) =>
-              setProfile((p) => ({ ...p, address: e.target.value }))
-            }
-            className="w-full border rounded px-2 py-1"
-            required
-          />
-        </div>
+      <div>
+        <label className="block text-sm font-medium">Address</label>
+        <input
+          type="text"
+          value={profile.address}
+          onChange={(e) => setProfile((p) => ({ ...p, address: e.target.value }))}
+          className="mt-1 block w-full border rounded p-2"
+          required
+        />
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            <Phone className="inline-block mr-1" />
-            Contact
-          </label>
-          <input
-            type="text"
-            value={profile.contact}
-            onChange={(e) =>
-              setProfile((p) => ({ ...p, contact: e.target.value }))
-            }
-            className="w-full border rounded px-2 py-1"
-            required
-          />
-        </div>
+      <div>
+        <label className="block text-sm font-medium">Contact</label>
+        <input
+          type="text"
+          value={profile.contact}
+          onChange={(e) => setProfile((p) => ({ ...p, contact: e.target.value }))}
+          className="mt-1 block w-full border rounded p-2"
+          required
+        />
+      </div>
 
-        <div className="col-span-2">
-          <label className="block text-sm font-medium mb-1">Description</label>
-          <textarea
-            value={profile.description}
-            onChange={(e) =>
-              setProfile((p) => ({ ...p, description: e.target.value }))
-            }
-            className="w-full border rounded px-2 py-1"
-            rows={3}
-          />
-        </div>
+      <div>
+        <label className="block text-sm font-medium">Description</label>
+        <textarea
+          value={profile.description}
+          onChange={(e) => setProfile((p) => ({ ...p, description: e.target.value }))}
+          className="mt-1 block w-full border rounded p-2"
+        />
+      </div>
 
-        <div className="col-span-2">
-          <label className="block text-sm font-medium mb-1">
-            Facilities (comma separated)
-          </label>
-          <input
-            type="text"
-            value={profile.facilities}
-            onChange={(e) =>
-              setProfile((p) => ({ ...p, facilities: e.target.value }))
-            }
-            className="w-full border rounded px-2 py-1"
-          />
-        </div>
+      <div>
+        <label className="block text-sm font-medium">Facilities (comma separated)</label>
+        <input
+          type="text"
+          value={profile.facilities}
+          onChange={(e) => setProfile((p) => ({ ...p, facilities: e.target.value }))}
+          className="mt-1 block w-full border rounded p-2"
+        />
+      </div>
 
-        <div className="col-span-2">
-          <label className="block text-sm font-medium mb-1">Rules</label>
-          <textarea
-            value={profile.rules}
-            onChange={(e) =>
-              setProfile((p) => ({ ...p, rules: e.target.value }))
-            }
-            className="w-full border rounded px-2 py-1"
-            rows={3}
-          />
-        </div>
+      <div>
+        <label className="block text-sm font-medium">Rules</label>
+        <textarea
+          value={profile.rules}
+          onChange={(e) => setProfile((p) => ({ ...p, rules: e.target.value }))}
+          className="mt-1 block w-full border rounded p-2"
+        />
       </div>
 
       <button
         type="submit"
         disabled={saving}
-        className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 disabled:opacity-50"
+        className="flex items-center justify-center w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
       >
-        {saving && <Loader2 className="animate-spin h-4 w-4" />}
-        <Save className="h-4 w-4" />
+        {saving ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />}
         Save Changes
       </button>
     </form>

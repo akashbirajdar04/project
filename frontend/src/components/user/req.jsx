@@ -1,7 +1,17 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../lib/api";
-import { Send, ArrowLeft, Building2, User, CheckCircle, XCircle, Clock, RotateCcw, CreditCard } from "lucide-react";
+import {
+  Send,
+  ArrowLeft,
+  Building2,
+  User,
+  CheckCircle,
+  XCircle,
+  Clock,
+  RotateCcw,
+  CreditCard,
+} from "lucide-react";
 import { toast } from "sonner";
 import PayButton from "../payment";
 
@@ -14,6 +24,7 @@ export const Req = () => {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Load hostel details
   useEffect(() => {
     const fetchHostel = async () => {
       try {
@@ -22,10 +33,15 @@ export const Req = () => {
         setHostel(d);
 
         if (d && senderid) {
-          // Use String() to ensure we compare strings vs ObjectIds correctly
-          const isAccepted = d.accepted?.some(uid => String(uid) === String(senderid));
-          const isPaymentPending = d.payment_pending?.some(uid => String(uid) === String(senderid));
-          const isPending = d.requesters?.some(uid => String(uid) === String(senderid));
+          const isAccepted = d.accepted?.some(
+            (uid) => String(uid) === String(senderid)
+          );
+          const isPaymentPending = d.payment_pending?.some(
+            (uid) => String(uid) === String(senderid)
+          );
+          const isPending = d.requesters?.some(
+            (uid) => String(uid) === String(senderid)
+          );
 
           console.log("DEBUG Req:", {
             hostelId: id,
@@ -33,207 +49,148 @@ export const Req = () => {
             isAccepted,
             isPaymentPending,
             isPending,
-            paymentPendingList: d.payment_pending
+            paymentPendingList: d.payment_pending,
           });
 
-          if (isAccepted) {
-            setStatus("accepted");
-          } else if (isPaymentPending) {
-            setStatus("payment_pending");
-          } else if (isPending) {
-            setStatus("pending");
-          }
+          if (isAccepted) setStatus("accepted");
+          else if (isPaymentPending) setStatus("payment_pending");
+          else if (isPending) setStatus("pending");
         }
-      } catch (err) {
+      } catch (error) {
+        console.error("Failed to load hostel details:", error);
         toast.error("Failed to load hostel details");
       }
     };
+
     if (id) fetchHostel();
-  }, [id]);
+  }, [id, senderid]);
 
-  const handleClick = async () => {
-    if (!senderid) {
-      toast.error("You must be logged in to send a request.");
-      return;
-    }
-
+  // Send request to stay
+  const handleRequest = async () => {
+    if (!hostel) return;
+    setLoading(true);
     try {
-      setLoading(true);
-      await api.post(`/Profile/Hostelrequest/${id}/${senderid}`, {});
+      await api.post(`/hostel/${id}/request`, { userId: senderid });
       setStatus("pending");
-      toast.success("Request sent successfully!");
-    } catch (err) {
-      console.error(err);
-      const msg = err.response?.data?.message || "Cannot send the request.";
-
-      if (msg.includes("already enrolled")) {
-        setStatus("accepted");
-        toast.info("You are already enrolled in this hostel.");
-      } else if (msg.includes("already sent")) {
-        setStatus("pending");
-        toast.info("Request already sent.");
-      } else {
-        toast.error(msg);
-      }
+      toast.success("Request sent successfully");
+    } catch (error) {
+      console.error("Request error:", error);
+      toast.error("Failed to send request");
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePaymentSuccess = async (response) => {
+  // Cancel request
+  const handleCancel = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      // Call the enrollment confirmation endpoint
-      await api.put(`/Profile/Hostelrequest/${id}/payment-success`, { userId: senderid });
-      setStatus("accepted");
-      toast.success("Enrollment confirmed!");
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to confirm enrollment after payment.");
+      await api.delete(`/hostel/${id}/request`, {
+        data: { userId: senderid },
+      });
+      setStatus(null);
+      toast.success("Request cancelled");
+    } catch (error) {
+      console.error("Cancel error:", error);
+      toast.error("Failed to cancel request");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Pay for pending payment
+  const handlePaymentSuccess = async () => {
+    setLoading(true);
+    try {
+      await api.post(`/hostel/${id}/pay`, { userId: senderid });
+      setStatus("accepted");
+      toast.success("Payment successful");
+    } catch (error) {
+      console.error("Payment error:", error);
+      toast.error("Payment failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // UI helpers
+  const renderAction = () => {
+    if (loading) return <Clock className="animate-spin" />;
+
+    switch (status) {
+      case "pending":
+        return (
+          <button
+            onClick={handleCancel}
+            className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded"
+          >
+            <XCircle size={18} />
+            Cancel Request
+          </button>
+        );
+      case "payment_pending":
+        return (
+          <PayButton
+            amount={hostel?.price || 0}
+            onSuccess={handlePaymentSuccess}
+            disabled={loading}
+          />
+        );
+      case "accepted":
+        return (
+          <button
+            disabled
+            className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded"
+          >
+            <CheckCircle size={18} />
+            Accepted
+          </button>
+        );
+      default:
+        return (
+          <button
+            onClick={handleRequest}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded"
+          >
+            <Send size={18} />
+            Send Request
+          </button>
+        );
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto pt-8">
+    <div className="max-w-2xl mx-auto p-4">
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center text-slate-500 hover:text-blue-600 mb-6 transition-colors"
+        className="flex items-center gap-2 text-gray-600 mb-4"
       >
-        <ArrowLeft className="w-4 h-4 mr-1" />
+        <ArrowLeft size={20} />
         Back
       </button>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        {/* Hostel Image Header */}
-        <div className="h-48 bg-slate-100 relative">
-          {hostel?.avatar?.url ? (
-            <img
-              src={hostel.avatar.url}
-              alt={hostel.name}
-              className="w-full h-full object-cover"
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-slate-400">
-              <Building2 className="w-12 h-12" />
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
-            <div className="text-white">
-              <h1 className="text-2xl font-bold">{hostel?.name || "Loading..."}</h1>
-              <p className="text-white/90 text-sm">{hostel?.address || "Loading address..."}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-slate-800 flex items-center">
-            <Building2 className="w-5 h-5 mr-2 text-blue-600" />
-            Hostel Request
-          </h2>
-          <span className="text-xs font-mono text-slate-400 bg-white px-2 py-1 rounded border border-slate-200">
-            ID: {id}
-          </span>
-        </div>
-
-        <div className="p-8">
-          {/* ... existing status and button logic ... */}
-          <div className="flex items-center justify-between mb-8 p-4 bg-blue-50 rounded-xl border border-blue-100">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                <User className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider">Applicant</p>
-                <p className="font-medium text-slate-900">{senderid ? "Current User" : "Not logged in"}</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-slate-500">Status</p>
-              <div className="mt-1">
-                {status === null && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
-                    Not sent
-                  </span>
-                )}
-                {status === "pending" && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
-                    <Clock className="w-3 h-3 mr-1" /> Pending
-                  </span>
-                )}
-                {status === "accepted" && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                    <CheckCircle className="w-3 h-3 mr-1" /> Accepted
-                  </span>
-                )}
-                {status === "rejected" && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
-                    <XCircle className="w-3 h-3 mr-1" /> Rejected
-                  </span>
-                )}
-              </div>
-            </div>
+      {hostel ? (
+        <div className="border rounded-lg p-6 shadow">
+          <div className="flex items-center gap-4 mb-4">
+            <Building2 size={32} />
+            <h2 className="text-2xl font-semibold">{hostel.name}</h2>
           </div>
 
-          <div className="text-center space-y-6">
-            <p className="text-slate-600 leading-relaxed">
-              Click the button below to send a formal request to join this hostel.
-              The hostel owner will review your application and you will be notified of their decision.
-            </p>
+          <p className="text-gray-700 mb-2">
+            <strong>Location:</strong> {hostel.location}
+          </p>
+          <p className="text-gray-700 mb-2">
+            <strong>Price:</strong> ${hostel.price} / month
+          </p>
+          <p className="text-gray-700 mb-4">
+            <strong>Owner:</strong> {hostel.owner?.name || "N/A"}
+          </p>
 
-            <div className="flex items-center justify-center gap-4">
-              {status === "payment_pending" ? (
-                <PayButton
-                  amount={hostel?.price || 5000} // Default to 5000 if no price
-                  user={{ _id: senderid, name: "Student", email: "student@example.com" }} // ideally fetch user details
-                  onSuccess={handlePaymentSuccess}
-                  btnText="Pay to Get Started"
-                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold shadow-sm bg-green-600 text-white hover:bg-green-700 hover:shadow-md transition-all transform active:scale-95"
-                />
-              ) : (
-                <button
-                  onClick={handleClick}
-                  disabled={loading || (!senderid && status !== "accepted") || status === "pending" || status === "accepted"}
-                  className={`inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold shadow-sm transition-all transform active:scale-95
-                    ${(loading || (!senderid && status !== "accepted") || status === "pending" || status === "accepted")
-                      ? "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200"
-                      : "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md"}
-                  `}
-                >
-                  {loading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Sending...
-                    </>
-                  ) : status === "accepted" ? (
-                    <>
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Enrolled
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4 mr-2" />
-                      Send Request
-                    </>
-                  )}
-                </button>
-              )}
-
-              {status && (
-                <button
-                  onClick={() => setStatus(null)}
-                  className="inline-flex items-center justify-center px-4 py-3 rounded-xl font-medium text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-colors"
-                >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Reset
-                </button>
-              )}
-            </div>
-          </div>
+          <div className="flex items-center gap-4">{renderAction()}</div>
         </div>
-      </div>
+      ) : (
+        <p className="text-center text-gray-500">Loading hostel details...</p>
+      )}
     </div>
   );
 };
