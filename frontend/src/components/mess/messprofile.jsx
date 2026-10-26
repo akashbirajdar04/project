@@ -58,7 +58,7 @@ export const Messprofile = () => {
           },
           image: "",
         });
-      } catch (e) {
+      } catch (_) {
         toast.error("Failed to load mess profile");
       } finally {
         setLoading(false);
@@ -75,7 +75,18 @@ export const Messprofile = () => {
     }));
   };
 
-  const handleFacilityAdd = () => {
+  const handleLocationChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      location: {
+        ...prev.location,
+        [name]: value,
+      },
+    }));
+  };
+
+  const addFacility = () => {
     if (facilityInput.trim()) {
       setForm((prev) => ({
         ...prev,
@@ -83,6 +94,13 @@ export const Messprofile = () => {
       }));
       setFacilityInput("");
     }
+  };
+
+  const removeFacility = (idx) => {
+    setForm((prev) => ({
+      ...prev,
+      facilities: prev.facilities.filter((_, i) => i !== idx),
+    }));
   };
 
   const handleImageUpload = async (e) => {
@@ -95,8 +113,8 @@ export const Messprofile = () => {
       try {
         const res = await api.post("/upload", formData);
         uploaded.push(res.data?.url);
-      } catch {
-        toast.error("Failed to upload an image");
+      } catch (_) {
+        toast.error("Failed to upload image");
       }
     }
     setForm((prev) => ({
@@ -105,15 +123,14 @@ export const Messprofile = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSave = async () => {
     if (!canSave) return;
     setSaving(true);
     try {
       await api.put(`/Profile/Messprofile/${id}`, form);
-      toast.success("Mess profile updated");
-    } catch {
-      toast.error("Failed to update mess profile");
+      toast.success("Mess profile saved successfully");
+    } catch (_) {
+      toast.error("Failed to save mess profile");
     } finally {
       setSaving(false);
     }
@@ -121,138 +138,171 @@ export const Messprofile = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="animate-spin h-12 w-12 text-primary" />
+      <div className="flex items-center justify-center py-10">
+        <Loader2 className="animate-spin h-8 w-8" />
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto p-4">
-      <div className="grid grid-cols-2 gap-4">
-        <input
-          name="name"
-          value={form.name}
-          onChange={handleChange}
-          placeholder="Mess Name"
-          className="border p-2 rounded"
-          required
-        />
-        <input
-          name="adress"
-          value={form.adress}
-          onChange={handleChange}
-          placeholder="Address"
-          className="border p-2 rounded"
-          required
-        />
-        <input
-          name="price"
-          type="number"
-          value={form.price}
-          onChange={handleChange}
-          placeholder="Price"
-          className="border p-2 rounded"
-          required
-        />
-        <input
-          name="contact"
-          value={form.contact}
-          onChange={handleChange}
-          placeholder="Contact Number"
-          className="border p-2 rounded"
-        />
+    <div className="max-w-3xl mx-auto p-4 space-y-6">
+      <h2 className="text-2xl font-semibold">Mess Profile</h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium">Name</label>
+          <input
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            className="mt-1 block w-full border rounded p-2"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium">Address</label>
+          <input
+            name="adress"
+            value={form.adress}
+            onChange={handleChange}
+            className="mt-1 block w-full border rounded p-2"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium">Price</label>
+          <input
+            name="price"
+            type="number"
+            value={form.price}
+            onChange={handleChange}
+            className="mt-1 block w-full border rounded p-2"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium">Contact</label>
+          <input
+            name="contact"
+            value={form.contact}
+            onChange={handleChange}
+            className="mt-1 block w-full border rounded p-2"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium">City</label>
+          <input
+            name="city"
+            value={form.location.city}
+            onChange={handleLocationChange}
+            className="mt-1 block w-full border rounded p-2"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium">State</label>
+          <input
+            name="state"
+            value={form.location.state}
+            onChange={handleLocationChange}
+            className="mt-1 block w-full border rounded p-2"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium">Pincode</label>
+          <input
+            name="pincode"
+            value={form.location.pincode}
+            onChange={handleLocationChange}
+            className="mt-1 block w-full border rounded p-2"
+          />
+        </div>
       </div>
 
-      <textarea
-        name="description"
-        value={form.description}
-        onChange={handleChange}
-        placeholder="Description"
-        className="border p-2 rounded w-full"
-        rows={4}
-      />
+      <div>
+        <label className="block text-sm font-medium mb-1">Facilities</label>
+        <div className="flex space-x-2 mb-2">
+          <input
+            value={facilityInput}
+            onChange={(e) => setFacilityInput(e.target.value)}
+            className="flex-1 border rounded p-2"
+            placeholder="Add facility"
+          />
+          <button
+            type="button"
+            onClick={addFacility}
+            className="flex items-center px-3 py-2 bg-blue-600 text-white rounded"
+          >
+            <Plus size={16} className="mr-1" />
+            Add
+          </button>
+        </div>
+        <ul className="list-disc pl-5 space-y-1">
+          {form.facilities.map((f, idx) => (
+            <li key={idx} className="flex items-center justify-between">
+              <span>{f}</span>
+              <button
+                type="button"
+                onClick={() => removeFacility(idx)}
+                className="text-red-600"
+              >
+                <X size={14} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
 
-      <div className="flex items-center space-x-2">
+      <div>
+        <label className="block text-sm font-medium mb-1">Images</label>
         <input
-          value={facilityInput}
-          onChange={(e) => setFacilityInput(e.target.value)}
-          placeholder="Add facility"
-          className="border p-2 rounded flex-1"
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={handleImageUpload}
+          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700"
         />
+        <div className="grid grid-cols-3 gap-2 mt-2">
+          {form.images.map((src, idx) => (
+            <img
+              key={idx}
+              src={src}
+              alt={`Mess ${idx}`}
+              className="h-24 w-full object-cover rounded"
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="flex items-center space-x-4">
         <button
           type="button"
-          onClick={handleFacilityAdd}
-          className="bg-primary text-white p-2 rounded flex items-center"
+          onClick={handleSave}
+          disabled={!canSave || saving}
+          className={`flex items-center px-4 py-2 rounded text-white ${
+            canSave && !saving ? "bg-green-600 hover:bg-green-700" : "bg-gray-400"
+          }`}
         >
-          <Plus size={16} />
+          {saving ? (
+            <Loader2 className="animate-spin mr-2 h-4 w-4" />
+          ) : (
+            <Save className="mr-2 h-4 w-4" />
+          )}
+          Save
+        </button>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="flex items-center px-4 py-2 rounded bg-gray-600 hover:bg-gray-700 text-white"
+        >
+          <X className="mr-2 h-4 w-4" />
+          Cancel
         </button>
       </div>
-
-      <ul className="list-disc pl-5 space-y-1">
-        {form.facilities.map((f, i) => (
-          <li key={i} className="flex justify-between items-center">
-            {f}
-            <button
-              type="button"
-              onClick={() =>
-                setForm((prev) => ({
-                  ...prev,
-                  facilities: prev.facilities.filter((_, idx) => idx !== i),
-                }))
-              }
-              className="text-red-500"
-            >
-              <X size={14} />
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      <div className="flex items-center space-x-2">
-        <label className="flex items-center cursor-pointer">
-          <Upload className="mr-2" />
-          <span>Upload Images</span>
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="hidden"
-          />
-        </label>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4">
-        {form.images.map((src, i) => (
-          <div key={i} className="relative">
-            <img src={src} alt={`Mess ${i}`} className="object-cover w-full h-32 rounded" />
-            <button
-              type="button"
-              onClick={() =>
-                setForm((prev) => ({
-                  ...prev,
-                  images: prev.images.filter((_, idx) => idx !== i),
-                }))
-              }
-              className="absolute top-1 right-1 bg-white rounded-full p-1"
-            >
-              <X size={12} />
-            </button>
-          </div>
-        ))}
-      </div>
-
-      <button
-        type="submit"
-        disabled={!canSave || saving}
-        className={`flex items-center justify-center gap-2 px-4 py-2 rounded ${
-          canSave && !saving ? "bg-primary text-white" : "bg-gray-300 text-gray-600"
-        }`}
-      >
-        {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
-        Save
-      </button>
-    </form>
+    </div>
   );
 };
+
+export default Messprofile;
