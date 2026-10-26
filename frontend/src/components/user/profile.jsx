@@ -19,7 +19,7 @@ const StudentProfile = () => {
   });
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
@@ -63,327 +63,248 @@ const StudentProfile = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      if (res.data?.data) {
-        setData((d) => ({ ...d, ...res.data.data }));
-        if (res.data.data.avatar?.url) {
-          setPreview(res.data.data.avatar.url);
-        }
+      if (res.data?.success) {
+        toast.success("Profile saved successfully");
+        load();
+      } else {
+        toast.error(res.data?.message || "Failed to save profile");
       }
-
-      toast.success("Profile updated successfully");
     } catch (e) {
       console.error(e);
-      toast.error("Failed to update profile");
+      toast.error("An error occurred while saving");
     } finally {
       setSaving(false);
     }
   };
 
-  // Non-blocking render to allow immediate LCP placeholder display
-  // if (loading) return ...
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    if (name.includes(".")) {
+      const [section, field] = name.split(".");
+      setData((prev) => ({
+        ...prev,
+        [section]: { ...prev[section], [field]: type === "checkbox" ? checked : value },
+      }));
+    } else {
+      setData((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      }));
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const selected = e.target.files[0];
+    setFile(selected);
+    setPreview(URL.createObjectURL(selected));
+  };
 
   return (
-    <div className="max-w-4xl mx-auto pb-12">
-      <div className="md:flex md:items-center md:justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Student Profile</h1>
-          <p className="mt-1 text-slate-500">
-            Manage your personal information and preferences
-          </p>
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded shadow">
+      <h2 className="text-2xl font-bold mb-4 flex items-center">
+        <User className="mr-2" /> Student Profile
+      </h2>
+      <form onSubmit={save} className="space-y-6">
+        {/* Avatar */}
+        <div className="flex items-center space-x-4">
+          {preview && <img src={preview} alt="Avatar" className="w-20 h-20 rounded-full object-cover" />}
+          <label className="cursor-pointer bg-gray-100 p-2 rounded">
+            <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+            <span className="flex items-center text-sm text-gray-600">
+              <Loader2 className="mr-1 animate-spin" size={16} /> Change Avatar
+            </span>
+          </label>
         </div>
-        <div className="mt-4 flex md:mt-0 md:ml-4">
-          <button
-            type="submit"
-            form="profile-form"
-            disabled={saving}
-            className="inline-flex items-center px-5 py-2.5 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="-ml-1 mr-2 h-4 w-4" />
-                Save Changes
-              </>
-            )}
-          </button>
+
+        {/* Basic Info */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Course</label>
+            <input
+              type="text"
+              name="course"
+              value={data.course}
+              onChange={handleChange}
+              className="w-full border rounded p-2"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Year</label>
+            <input
+              type="text"
+              name="year"
+              value={data.year}
+              onChange={handleChange}
+              className="w-full border rounded p-2"
+            />
+          </div>
         </div>
-      </div>
 
-      <form id="profile-form" onSubmit={save} className="space-y-6">
-        <Section title="Profile Photo" icon={User}>
-          <div className="flex items-center gap-6">
-            <div className="relative">
-              <div className="relative w-24 h-24 rounded-full overflow-hidden bg-slate-100 border-2 border-slate-200">
-                {/* STATIC PLACEHOLDER — SAFE */}
-                <img
-                  src="/hero.webp"
-                  alt="Profile placeholder"
-                  width="96"
-                  height="96"
-                  fetchPriority="high"
-                  loading="eager"
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-
-                {/* REAL AVATAR — LOADS LATER */}
-                {preview && preview !== "/hero.webp" && (
-                  <img
-                    src={preview}
-                    alt="Profile"
-                    width="96"
-                    height="96"
-                    className="absolute inset-0 w-full h-full object-cover animate-fadeIn"
-                  />
-                )}
-
-                {/* Fallback Icon only if NO preview and NO hero (unlikely) */}
-                {!preview && (
-                  <div className="absolute inset-0 w-full h-full flex items-center justify-center text-slate-400 bg-white/0">
-                    {/* Transparent */}
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Upload New Photo</label>
+        {/* Preferences */}
+        <div className="border p-4 rounded">
+          <h3 className="font-semibold mb-2 flex items-center">
+            <BookOpen className="mr-2" /> Preferences
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Budget</label>
               <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const f = e.target.files[0];
-                  if (f) {
-                    setFile(f);
-                    setPreview(URL.createObjectURL(f));
-                  }
-                }}
-                className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              />
-              <p className="mt-1 text-xs text-slate-500">JPG, PNG or GIF. Max 5MB.</p>
-            </div>
-          </div>
-        </Section>
-
-        <Section title="Roommate Preferences" icon={Users}>
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
-              <input
-                type="checkbox"
-                id="looking"
-                checked={data.isLookingForRoommate}
-                onChange={(e) => setData({ ...data, isLookingForRoommate: e.target.checked })}
-                className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-              />
-              <label htmlFor="looking" className="font-medium text-slate-800 cursor-pointer">
-                I am interested in finding a roommate
-              </label>
-            </div>
-            {data.isLookingForRoommate && (
-              <InputField
-                label="My Contact Number (Visible to others)"
-                icon={Users}
-                value={data.contact}
-                onChange={(e) => setData({ ...data, contact: e.target.value })}
-                placeholder="e.g., +91 9876543210"
-              />
-            )}
-          </div>
-        </Section>
-
-        <Section title="Academic Information" icon={BookOpen}>
-          <div className="grid grid-cols-1 gap-y-6 gap-x-6 sm:grid-cols-6">
-            <div className="sm:col-span-3">
-              <InputField
-                label="Course"
-                icon={BookOpen}
-                value={data.course}
-                onChange={(e) => setData({ ...data, course: e.target.value })}
-                placeholder="e.g., Computer Science"
-                required
+                type="text"
+                name="preferences.budget"
+                value={data.preferences.budget}
+                onChange={handleChange}
+                className="w-full border rounded p-2"
               />
             </div>
-            <div className="sm:col-span-3">
-              <InputField
-                label="Year of Study"
-                icon={BookOpen}
-                type="number"
-                min="1"
-                max="5"
-                value={data.year}
-                onChange={(e) => setData({ ...data, year: e.target.value })}
-                placeholder="e.g., 3"
-                required
-              />
-            </div>
-          </div>
-        </Section>
-
-        <Section title="Housing Preferences" icon={Home}>
-          <div className="grid grid-cols-1 gap-y-6 gap-x-6 sm:grid-cols-6">
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Budget (per month)</label>
-              <div className="relative rounded-lg shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <DollarSign className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  type="number"
-                  value={data.preferences.budget}
-                  onChange={(e) => setData({ ...data, preferences: { ...data.preferences, budget: e.target.value } })}
-                  placeholder="e.g., 5000"
-                  className="block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm pl-10 py-2.5 border transition-colors"
-                />
-              </div>
-            </div>
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Preferred Gender</label>
+            <div>
+              <label className="block text-sm font-medium mb-1">Gender</label>
               <select
+                name="preferences.gender"
                 value={data.preferences.gender}
-                onChange={(e) => setData({ ...data, preferences: { ...data.preferences, gender: e.target.value } })}
-                className="block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 border transition-colors"
+                onChange={handleChange}
+                className="w-full border rounded p-2"
               >
-                <option value="any">No preference</option>
+                <option value="any">Any</option>
                 <option value="male">Male</option>
                 <option value="female">Female</option>
               </select>
             </div>
-            <div className="sm:col-span-2">
-              <InputField
-                label="Lifestyle"
-                icon={Users}
+            <div>
+              <label className="block text-sm font-medium mb-1">Lifestyle</label>
+              <input
+                type="text"
+                name="preferences.lifestyle"
                 value={data.preferences.lifestyle}
-                onChange={(e) => setData({ ...data, preferences: { ...data.preferences, lifestyle: e.target.value } })}
-                placeholder="e.g., Quiet, Social"
+                onChange={handleChange}
+                className="w-full border rounded p-2"
               />
             </div>
           </div>
-        </Section>
-
-        <Section title="Guardian Information" icon={User}>
-          <div className="grid grid-cols-1 gap-y-6 gap-x-6 sm:grid-cols-6">
-            <div className="sm:col-span-3">
-              <InputField
-                label="Guardian Name"
-                icon={User}
-                value={data.guardian.name}
-                onChange={(e) => setData({ ...data, guardian: { ...data.guardian, name: e.target.value } })}
-                placeholder="Full name"
-                required
-              />
-            </div>
-            <div className="sm:col-span-3">
-              <InputField
-                label="Guardian Phone"
-                icon={Users}
-                type="tel"
-                value={data.guardian.phone}
-                onChange={(e) => setData({ ...data, guardian: { ...data.guardian, phone: e.target.value } })}
-                placeholder="Phone number"
-                required
-              />
-            </div>
-          </div>
-        </Section>
-
-        <Section title="Health Information" icon={HeartPulse}>
-          <div className="grid grid-cols-1 gap-y-6 gap-x-6 sm:grid-cols-6">
-            <div className="sm:col-span-2">
-              <InputField
-                label="Dietary Preference"
-                icon={HeartPulse}
-                value={data.health.diet}
-                onChange={(e) => setData({ ...data, health: { ...data.health, diet: e.target.value } })}
-                placeholder="e.g., Vegetarian"
-              />
-            </div>
-            <div className="sm:col-span-4">
-              <InputField
-                label="Allergies"
-                icon={AlertTriangle}
-                value={data.allergies}
-                onChange={(e) => setData({ ...data, allergies: e.target.value })}
-                placeholder="List any allergies"
-              />
-            </div>
-            <div className="sm:col-span-6">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Health Notes</label>
-              <textarea
-                value={data.health.notes}
-                onChange={(e) => setData({ ...data, health: { ...data.health, notes: e.target.value } })}
-                placeholder="Any additional health information"
-                rows={3}
-                className="block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-3 transition-colors"
-              />
-            </div>
-          </div>
-        </Section>
-
-        <Section title="Emergency Contact" icon={AlertTriangle}>
-          <div className="grid grid-cols-1 gap-y-6 gap-x-6 sm:grid-cols-6">
-            <div className="sm:col-span-3">
-              <InputField
-                label="Emergency Contact Name"
-                icon={User}
-                value={data.emergency.name}
-                onChange={(e) => setData({ ...data, emergency: { ...data.emergency, name: e.target.value } })}
-                placeholder="Full name"
-                required
-              />
-            </div>
-            <div className="sm:col-span-3">
-              <InputField
-                label="Emergency Phone"
-                icon={AlertTriangle}
-                type="tel"
-                value={data.emergency.phone}
-                onChange={(e) => setData({ ...data, emergency: { ...data.emergency, phone: e.target.value } })}
-                placeholder="Phone number"
-                required
-              />
-            </div>
-          </div>
-        </Section>
-      </form>
-    </div >
-  );
-};
-
-export default StudentProfile;
-
-const InputField = ({ label, icon: Icon, value, onChange, placeholder = "", type = "text", className = "", ...props }) => (
-  <div className={className}>
-    <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
-    <div className="relative rounded-lg shadow-sm">
-      {Icon && (
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Icon className="h-5 w-5 text-slate-400" />
         </div>
-      )}
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className={`block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${Icon ? 'pl-10' : 'pl-3'} py-2.5 border transition-colors`}
-        {...props}
-      />
-    </div>
-  </div>
-);
 
-const Section = ({ title, icon: Icon, children }) => (
-  <div className="bg-white shadow-sm border border-slate-200 rounded-xl mb-6 overflow-hidden">
-    <div className="px-6 py-4 bg-slate-50 border-b border-slate-100">
-      <h3 className="text-lg font-semibold text-slate-800 flex items-center">
-        {Icon && <Icon className="h-5 w-5 mr-2.5 text-blue-600" />}
-        {title}
-      </h3>
-    </div>
-    <div className="p-6">
-      {children}
-    </div>
-  </div>
-);
+        {/* Guardian */}
+        <div className="border p-4 rounded">
+          <h3 className="font-semibold mb-2 flex items-center">
+            <Users className="mr-2" /> Guardian Info
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Name</label>
+              <input
+                type="text"
+                name="guardian.name"
+                value={data.guardian.name}
+                onChange={handleChange}
+                className="w-full border rounded p-2"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Phone</label>
+              <input
+                type="text"
+                name="guardian.phone"
+                value={data.guardian.phone}
+                onChange={handleChange}
+                className="w-full border rounded p-2"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Health */}
+        <div className="border p-4 rounded">
+          <h3 className="font-semibold mb-2 flex items-center">
+            <HeartPulse className="mr-2" /> Health
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Diet</label>
+              <input
+                type="text"
+                name="health.diet"
+                value={data.health.diet}
+                onChange={handleChange}
+                className="w-full border rounded p-2"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Notes</label>
+              <textarea
+                name="health.notes"
+                value={data.health.notes}
+                onChange={handleChange}
+                className="w-full border rounded p-2"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Allergies */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Allergies</label>
+          <input
+            type="text"
+            name="allergies"
+            value={data.allergies}
+            onChange={handleChange}
+            className="w-full border rounded p-2"
+          />
+        </div>
+
+        {/* Emergency */}
+        <div className="border p-4 rounded">
+          <h3 className="font-semibold mb-2 flex items-center">
+            <AlertTriangle className="mr-2" /> Emergency Contact
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Name</label>
+              <input
+                type="text"
+                name="emergency.name"
+                value={data.emergency.name}
+                onChange={handleChange}
+                className="w-full border rounded p-2"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Phone</label>
+              <input
+                type="text"
+                name="emergency.phone"
+                value={data.emergency.phone}
+                onChange={handleChange}
+                className="w-full border rounded p-2"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Contact */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Contact</label>
+          <input
+            type="text"
+            name="contact"
+            value={data.contact}
+            onChange={handleChange}
+            className="w-full border rounded p-2"
+          />
+        </div>
+
+        {/* Looking for roommate */}
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            name="isLookingForRoommate"
+            checked={data.isLookingForRoommate}
+            onChange={handleChange}
+            className="mr-2"
+          />
+          <label className="text-sm">Looking for a roommate</label>
+        </div>
+
+        {/* Save button */}
+        <button
+          type="submit"
+          disabled={saving

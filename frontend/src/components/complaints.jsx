@@ -47,9 +47,66 @@ const Complaints = ({ userId }) => {
     }
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
   return (
-    <div>
-      {/* Render complaints list, loading state, and creation form here */}
+    <div className="complaints-container">
+      <h2>My Complaints</h2>
+
+      {/* Creation Form */}
+      <form onSubmit={onCreate} style={{ marginBottom: "1rem" }}>
+        <textarea
+          name="description"
+          value={form.description}
+          onChange={handleChange}
+          placeholder="Describe your complaint..."
+          rows={3}
+          style={{ width: "100%" }}
+          required
+        />
+        <button type="submit" disabled={loading} style={{ marginTop: "0.5rem" }}>
+          {loading ? "Submitting..." : "Create Complaint"}
+        </button>
+      </form>
+
+      {/* Loading Indicator */}
+      {loading && <p>Loading complaints...</p>}
+
+      {/* Complaints List */}
+      {!loading && items.length === 0 && <p>No complaints found.</p>}
+      {!loading && items.length > 0 && (
+        <ul style={{ listStyle: "none", padding: 0 }}>
+          {items.map((item) => (
+            <li
+              key={item.id}
+              style={{
+                border: "1px solid #ccc",
+                borderRadius: "4px",
+                padding: "0.75rem",
+                marginBottom: "0.5rem",
+              }}
+            >
+              <p>
+                <strong>Description:</strong> {item.description}
+              </p>
+              <p>
+                <strong>Status:</strong> {item.status}
+              </p>
+              {item.status !== "closed" && (
+                <button
+                  onClick={() => updateStatus(item.id, "closed")}
+                  style={{ marginTop: "0.5rem" }}
+                >
+                  Mark as Closed
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

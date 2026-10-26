@@ -1,17 +1,9 @@
-import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { LogOut, Home, User, FileText, LayoutGrid, MessageSquare, Users } from "lucide-react";
+import { Outlet, useLocation } from "react-router-dom";
 import { Announcements } from "../announcements";
 
 export const Hostel = () => {
-  const [time, setTime] = useState(new Date().toLocaleTimeString());
   const location = useLocation();
   const isRoot = location.pathname === "/hostel" || location.pathname === "/hostel/";
-
-  useEffect(() => {
-    const interval = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <div className="flex flex-col h-full font-sans bg-slate-50">
