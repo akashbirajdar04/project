@@ -24,7 +24,6 @@ export const Req = () => {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Load hostel details
   useEffect(() => {
     const fetchHostel = async () => {
       try {
@@ -52,144 +51,170 @@ export const Req = () => {
             paymentPendingList: d.payment_pending,
           });
 
-          if (isAccepted) setStatus("accepted");
-          else if (isPaymentPending) setStatus("payment_pending");
-          else if (isPending) setStatus("pending");
+          if (isAccepted) {
+            setStatus("accepted");
+          } else if (isPaymentPending) {
+            setStatus("payment_pending");
+          } else if (isPending) {
+            setStatus("pending");
+          }
         }
-      } catch (error) {
-        console.error("Failed to load hostel details:", error);
+      } catch (err) {
+        console.error(err);
         toast.error("Failed to load hostel details");
       }
     };
 
-    if (id) fetchHostel();
+    if (id) {
+      fetchHostel();
+    }
   }, [id, senderid]);
 
-  // Send request to stay
-  const handleRequest = async () => {
-    if (!hostel) return;
+  const handleAccept = async () => {
     setLoading(true);
     try {
-      await api.post(`/hostel/${id}/request`, { userId: senderid });
-      setStatus("pending");
-      toast.success("Request sent successfully");
+      await api.post(`/hostel/${id}/accept`, { userId: senderid });
+      toast.success("Request accepted");
+      setStatus("accepted");
     } catch (error) {
-      console.error("Request error:", error);
-      toast.error("Failed to send request");
+      console.error(error);
+      toast.error("Failed to accept request");
     } finally {
       setLoading(false);
     }
   };
 
-  // Cancel request
+  const handleReject = async () => {
+    setLoading(true);
+    try {
+      await api.post(`/hostel/${id}/reject`, { userId: senderid });
+      toast.success("Request rejected");
+      setStatus("rejected");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to reject request");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCancel = async () => {
     setLoading(true);
     try {
-      await api.delete(`/hostel/${id}/request`, {
-        data: { userId: senderid },
-      });
-      setStatus(null);
+      await api.post(`/hostel/${id}/cancel`, { userId: senderid });
       toast.success("Request cancelled");
+      setStatus(null);
     } catch (error) {
-      console.error("Cancel error:", error);
+      console.error(error);
       toast.error("Failed to cancel request");
     } finally {
       setLoading(false);
     }
   };
 
-  // Pay for pending payment
-  const handlePaymentSuccess = async () => {
+  const handlePayment = async () => {
     setLoading(true);
     try {
       await api.post(`/hostel/${id}/pay`, { userId: senderid });
-      setStatus("accepted");
       toast.success("Payment successful");
+      setStatus("accepted");
     } catch (error) {
-      console.error("Payment error:", error);
+      console.error(error);
       toast.error("Payment failed");
     } finally {
       setLoading(false);
     }
   };
 
-  // UI helpers
-  const renderAction = () => {
-    if (loading) return <Clock className="animate-spin" />;
-
-    switch (status) {
-      case "pending":
-        return (
-          <button
-            onClick={handleCancel}
-            className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded"
-          >
-            <XCircle size={18} />
-            Cancel Request
-          </button>
-        );
-      case "payment_pending":
-        return (
-          <PayButton
-            amount={hostel?.price || 0}
-            onSuccess={handlePaymentSuccess}
-            disabled={loading}
-          />
-        );
-      case "accepted":
-        return (
-          <button
-            disabled
-            className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded"
-          >
-            <CheckCircle size={18} />
-            Accepted
-          </button>
-        );
-      default:
-        return (
-          <button
-            onClick={handleRequest}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded"
-          >
-            <Send size={18} />
-            Send Request
-          </button>
-        );
-    }
-  };
+  const goBack = () => navigate(-1);
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
+    <div className="p-4 max-w-2xl mx-auto">
       <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-gray-600 mb-4"
+        onClick={goBack}
+        className="flex items-center text-gray-600 hover:text-gray-800 mb-4"
       >
-        <ArrowLeft size={20} />
+        <ArrowLeft className="mr-2" />
         Back
       </button>
 
       {hostel ? (
-        <div className="border rounded-lg p-6 shadow">
-          <div className="flex items-center gap-4 mb-4">
-            <Building2 size={32} />
+        <div className="border rounded-lg p-6 shadow-sm">
+          <div className="flex items-center mb-4">
+            <Building2 className="mr-2" />
             <h2 className="text-2xl font-semibold">{hostel.name}</h2>
           </div>
 
-          <p className="text-gray-700 mb-2">
-            <strong>Location:</strong> {hostel.location}
-          </p>
-          <p className="text-gray-700 mb-2">
-            <strong>Price:</strong> ${hostel.price} / month
-          </p>
-          <p className="text-gray-700 mb-4">
-            <strong>Owner:</strong> {hostel.owner?.name || "N/A"}
-          </p>
+          <p className="mb-4">{hostel.description}</p>
 
-          <div className="flex items-center gap-4">{renderAction()}</div>
+          {status === "accepted" && (
+            <div className="flex items-center text-green-600 mb-4">
+              <CheckCircle className="mr-2" />
+              <span>Request accepted</span>
+            </div>
+          )}
+
+          {status === "payment_pending" && (
+            <div className="flex items-center text-yellow-600 mb-4">
+              <Clock className="mr-2" />
+              <span>Payment pending</span>
+            </div>
+          )}
+
+          {status === "pending" && (
+            <div className="flex items-center text-blue-600 mb-4">
+              <Send className="mr-2" />
+              <span>Request pending</span>
+            </div>
+          )}
+
+          <div className="flex space-x-3 mt-6">
+            {status === "pending" && (
+              <>
+                <button
+                  onClick={handleAccept}
+                  disabled={loading}
+                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  <CheckCircle className="mr-2" size={16} />
+                  Accept
+                </button>
+                <button
+                  onClick={handleReject}
+                  disabled={loading}
+                  className="flex items-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                >
+                  <XCircle className="mr-2" size={16} />
+                  Reject
+                </button>
+              </>
+            )}
+
+            {status === "payment_pending" && (
+              <PayButton
+                onSuccess={handlePayment}
+                disabled={loading}
+                className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+              >
+                <CreditCard className="mr-2" size={16} />
+                Pay Now
+              </PayButton>
+            )}
+
+            {(status === "pending" || status === "payment_pending") && (
+              <button
+                onClick={handleCancel}
+                disabled={loading}
+                className="flex items-center px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+              >
+                <RotateCcw className="mr-2" size={16} />
+                Cancel Request
+              </button>
+            )}
+          </div>
         </div>
       ) : (
-        <p className="text-center text-gray-500">Loading hostel details...</p>
+        <p>Loading hostel information...</p>
       )}
     </div>
   );
