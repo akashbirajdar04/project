@@ -76,7 +76,7 @@ const StudentProfile = () => {
       formData.append("contact", data.contact);
       formData.append(
         "isLookingForRoommate",
-        data.isLookingForRoommate ? "true" : "false"
+        JSON.stringify(data.isLookingForRoommate)
       );
       if (file) {
         formData.append("avatar", file);
@@ -86,6 +86,7 @@ const StudentProfile = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("Profile saved successfully");
+      load(); // refresh data after save
     } catch (err) {
       console.error(err);
       toast.error("Failed to save profile");
@@ -97,278 +98,253 @@ const StudentProfile = () => {
   if (_loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="animate-spin text-primary" size={48} />
+        <Loader2 className="animate-spin h-8 w-8 text-primary" />
       </div>
     );
   }
 
   return (
     <form onSubmit={save} className="max-w-2xl mx-auto p-4 space-y-6">
-      <h2 className="text-2xl font-bold flex items-center gap-2">
-        <User size={24} />
+      <h2 className="text-2xl font-semibold flex items-center gap-2">
+        <User className="h-6 w-6" />
         Student Profile
       </h2>
 
       {/* Avatar */}
       <div className="flex items-center gap-4">
-        {preview && (
-          <img
-            src={preview}
-            alt="Avatar preview"
-            className="w-20 h-20 rounded-full object-cover"
-          />
-        )}
-        <label className="flex items-center gap-2 cursor-pointer">
-          <Home size={20} />
-          <span>Change Avatar</span>
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleFileChange}
-          />
-        </label>
+        <img
+          src={preview || "/default-avatar.png"}
+          alt="Avatar"
+          className="h-20 w-20 rounded-full object-cover border"
+        />
+        <input type="file" accept="image/*" onChange={handleFileChange} />
       </div>
 
-      {/* Basic Info */}
+      {/* Course & Year */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block font-medium">Course</label>
+          <label className="block text-sm font-medium mb-1">
+            <BookOpen className="inline-block mr-1" />
+            Course
+          </label>
           <input
             type="text"
             value={data.course}
             onChange={(e) => setData({ ...data, course: e.target.value })}
-            className="w-full border rounded p-2"
+            className="w-full border rounded px-3 py-2"
           />
         </div>
         <div>
-          <label className="block font-medium">Year</label>
+          <label className="block text-sm font-medium mb-1">
+            <Home className="inline-block mr-1" />
+            Year
+          </label>
           <input
             type="text"
             value={data.year}
             onChange={(e) => setData({ ...data, year: e.target.value })}
-            className="w-full border rounded p-2"
+            className="w-full border rounded px-3 py-2"
           />
         </div>
       </div>
 
       {/* Preferences */}
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <BookOpen size={20} />
+        <h3 className="text-lg font-medium flex items-center gap-1">
+          <DollarSign />
           Preferences
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block font-medium">Budget</label>
-            <input
-              type="text"
-              value={data.preferences.budget}
-              onChange={(e) =>
-                setData({
-                  ...data,
-                  preferences: { ...data.preferences, budget: e.target.value },
-                })
-              }
-              className="w-full border rounded p-2"
-            />
-          </div>
-          <div>
-            <label className="block font-medium">Gender</label>
-            <select
-              value={data.preferences.gender}
-              onChange={(e) =>
-                setData({
-                  ...data,
-                  preferences: { ...data.preferences, gender: e.target.value },
-                })
-              }
-              className="w-full border rounded p-2"
-            >
-              <option value="any">Any</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-            </select>
-          </div>
-          <div>
-            <label className="block font-medium">Lifestyle</label>
-            <input
-              type="text"
-              value={data.preferences.lifestyle}
-              onChange={(e) =>
-                setData({
-                  ...data,
-                  preferences: {
-                    ...data.preferences,
-                    lifestyle: e.target.value,
-                  },
-                })
-              }
-              className="w-full border rounded p-2"
-            />
-          </div>
+          <input
+            type="text"
+            placeholder="Budget"
+            value={data.preferences.budget}
+            onChange={(e) =>
+              setData({
+                ...data,
+                preferences: { ...data.preferences, budget: e.target.value },
+              })
+            }
+            className="border rounded px-3 py-2"
+          />
+          <input
+            type="text"
+            placeholder="Gender"
+            value={data.preferences.gender}
+            onChange={(e) =>
+              setData({
+                ...data,
+                preferences: { ...data.preferences, gender: e.target.value },
+              })
+            }
+            className="border rounded px-3 py-2"
+          />
+          <input
+            type="text"
+            placeholder="Lifestyle"
+            value={data.preferences.lifestyle}
+            onChange={(e) =>
+              setData({
+                ...data,
+                preferences: { ...data.preferences, lifestyle: e.target.value },
+              })
+            }
+            className="border rounded px-3 py-2"
+          />
         </div>
       </div>
 
       {/* Guardian */}
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <Users size={20} />
+        <h3 className="text-lg font-medium flex items-center gap-1">
+          <Users />
           Guardian
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block font-medium">Name</label>
-            <input
-              type="text"
-              value={data.guardian.name}
-              onChange={(e) =>
-                setData({
-                  ...data,
-                  guardian: { ...data.guardian, name: e.target.value },
-                })
-              }
-              className="w-full border rounded p-2"
-            />
-          </div>
-          <div>
-            <label className="block font-medium">Phone</label>
-            <input
-              type="text"
-              value={data.guardian.phone}
-              onChange={(e) =>
-                setData({
-                  ...data,
-                  guardian: { ...data.guardian, phone: e.target.value },
-                })
-              }
-              className="w-full border rounded p-2"
-            />
-          </div>
-        </div>
+        <input
+          type="text"
+          placeholder="Guardian Name"
+          value={data.guardian.name}
+          onChange={(e) =>
+            setData({
+              ...data,
+              guardian: { ...data.guardian, name: e.target.value },
+            })
+          }
+          className="w-full border rounded px-3 py-2"
+        />
+        <input
+          type="text"
+          placeholder="Guardian Phone"
+          value={data.guardian.phone}
+          onChange={(e) =>
+            setData({
+              ...data,
+              guardian: { ...data.guardian, phone: e.target.value },
+            })
+          }
+          className="w-full border rounded px-3 py-2"
+        />
       </div>
 
       {/* Health */}
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <HeartPulse size={20} />
+        <h3 className="text-lg font-medium flex items-center gap-1">
+          <HeartPulse />
           Health
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block font-medium">Diet</label>
-            <input
-              type="text"
-              value={data.health.diet}
-              onChange={(e) =>
-                setData({
-                  ...data,
-                  health: { ...data.health, diet: e.target.value },
-                })
-              }
-              className="w-full border rounded p-2"
-            />
-          </div>
-          <div>
-            <label className="block font-medium">Notes</label>
-            <textarea
-              value={data.health.notes}
-              onChange={(e) =>
-                setData({
-                  ...data,
-                  health: { ...data.health, notes: e.target.value },
-                })
-              }
-              className="w-full border rounded p-2"
-            />
-          </div>
-        </div>
+        <input
+          type="text"
+          placeholder="Diet"
+          value={data.health.diet}
+          onChange={(e) =>
+            setData({
+              ...data,
+              health: { ...data.health, diet: e.target.value },
+            })
+          }
+          className="w-full border rounded px-3 py-2"
+        />
+        <textarea
+          placeholder="Health Notes"
+          value={data.health.notes}
+          onChange={(e) =>
+            setData({
+              ...data,
+              health: { ...data.health, notes: e.target.value },
+            })
+          }
+          className="w-full border rounded px-3 py-2"
+          rows={3}
+        />
       </div>
 
       {/* Allergies */}
-      <div>
-        <label className="block font-medium">Allergies</label>
+      <div className="space-y-2">
+        <label className="block text-sm font-medium">
+          <AlertTriangle className="inline-block mr-1" />
+          Allergies
+        </label>
         <input
           type="text"
           value={data.allergies}
           onChange={(e) => setData({ ...data, allergies: e.target.value })}
-          className="w-full border rounded p-2"
+          className="w-full border rounded px-3 py-2"
         />
       </div>
 
-      {/* Emergency */}
+      {/* Emergency Contact */}
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <AlertTriangle size={20} />
+        <h3 className="text-lg font-medium flex items-center gap-1">
+          <AlertTriangle />
           Emergency Contact
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block font-medium">Name</label>
-            <input
-              type="text"
-              value={data.emergency.name}
-              onChange={(e) =>
-                setData({
-                  ...data,
-                  emergency: { ...data.emergency, name: e.target.value },
-                })
-              }
-              className="w-full border rounded p-2"
-            />
-          </div>
-          <div>
-            <label className="block font-medium">Phone</label>
-            <input
-              type="text"
-              value={data.emergency.phone}
-              onChange={(e) =>
-                setData({
-                  ...data,
-                  emergency: { ...data.emergency, phone: e.target.value },
-                })
-              }
-              className="w-full border rounded p-2"
-            />
-          </div>
-        </div>
+        <input
+          type="text"
+          placeholder="Name"
+          value={data.emergency.name}
+          onChange={(e) =>
+            setData({
+              ...data,
+              emergency: { ...data.emergency, name: e.target.value },
+            })
+          }
+          className="w-full border rounded px-3 py-2"
+        />
+        <input
+          type="text"
+          placeholder="Phone"
+          value={data.emergency.phone}
+          onChange={(e) =>
+            setData({
+              ...data,
+              emergency: { ...data.emergency, phone: e.target.value },
+            })
+          }
+          className="w-full border rounded px-3 py-2"
+        />
       </div>
 
-      {/* Contact & Roommate */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block font-medium">Contact</label>
-          <input
-            type="text"
-            value={data.contact}
-            onChange={(e) => setData({ ...data, contact: e.target.value })}
-            className="w-full border rounded p-2"
-          />
-        </div>
-        <div className="flex items-center mt-6">
-          <input
-            type="checkbox"
-            checked={data.isLookingForRoommate}
-            onChange={(e) =>
-              setData({ ...data, isLookingForRoommate: e.target.checked })
-            }
-            className="mr-2"
-            id="roommate"
-          />
-          <label htmlFor="roommate" className="font-medium">
-            Looking for a roommate
-          </label>
-        </div>
+      {/* Contact */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium">
+          <PhoneIcon className="inline-block mr-1" />
+          Contact
+        </label>
+        <input
+          type="text"
+          value={data.contact}
+          onChange={(e) => setData({ ...data, contact: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+        />
+      </div>
+
+      {/* Looking for roommate */}
+      <div className="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          checked={data.isLookingForRoommate}
+          onChange={(e) =>
+            setData({ ...data, isLookingForRoommate: e.target.checked })
+          }
+          id="roommate"
+        />
+        <label htmlFor="roommate" className="text-sm">
+          Looking for a roommate
+        </label>
       </div>
 
       {/* Submit */}
       <button
         type="submit"
         disabled={saving}
-        className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark disabled:opacity-50"
+        className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 disabled:opacity-50"
       >
-        <Save size={20} />
-        {saving ? "Saving..." : "Save Profile"}
+        {saving ? (
+          <Loader2 className="animate-spin h-4 w-4" />
+        ) : (
+          <Save className="h-4 w-4" />
+        )}
+        Save
       </button>
     </form>
   );
