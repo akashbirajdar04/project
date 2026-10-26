@@ -21,15 +21,15 @@ export const Msg = () => {
       .then((res) => {
         setHostel(Array.isArray(res.data.data) ? res.data.data : [res.data.data]);
       })
-      .catch((e) => {
-        console.error(e);
-      });
+      .catch((e) => { console.error(e); });
   }, [Id, searchQuery]);
 
   const openChat = (userId) => {
     // Optimistically clear unread count
     setHostel((prev) =>
-      prev.map((h) => (h._id === userId ? { ...h, unreadCount: 0 } : h))
+      prev.map((h) =>
+        h._id === userId ? { ...h, unreadCount: 0 } : h
+      )
     );
     navigate(`chat/${userId}`);
   };
@@ -56,12 +56,13 @@ export const Msg = () => {
   }, [debouncedSearch]);
 
   // Check if a chat is selected (we are in a child route)
-  const isChatOpen = location.pathname.includes("/chat/");
+  const isChatOpen = location.pathname.includes('/chat/');
 
   return (
     <div className="msg-container">
+      {/* UI elements such as search input, list of hostels, etc. */}
       <div className="search-bar">
-        <Search className="icon" />
+        <Search />
         <input
           type="text"
           placeholder="Search..."
@@ -72,22 +73,15 @@ export const Msg = () => {
       </div>
       <div className="hostel-list">
         {hostel.map((h) => (
-          <div
-            key={h._id}
-            className="hostel-item"
-            onClick={() => openChat(h._id)}
-          >
-            <User className="icon" />
-            <span className="name">{h.name || h.username || "User"}</span>
-            {h.unreadCount > 0 && (
-              <span className="unread-badge">{h.unreadCount}</span>
-            )}
+          <div key={h._id} className="hostel-item" onClick={() => openChat(h._id)}>
+            <User />
+            <span>{h.name}</span>
+            {h.unreadCount > 0 && <span className="unread-badge">{h.unreadCount}</span>}
           </div>
         ))}
       </div>
+      {/* Render child routes when a chat is open */}
       {isChatOpen && <Outlet />}
     </div>
   );
 };
-
-export default Msg;
