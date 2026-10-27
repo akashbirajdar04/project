@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Announcements = () => {
+export const Announcements = () => {
     return <div>Announcements</div>;
 };
 
