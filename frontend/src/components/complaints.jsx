@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from "react";
-import api from "../api";
+import api from "../lib/api";
 import { toast } from "react-toastify";
 
 const Complaints = ({ userId }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ description: "" });
-
-  // Previously declared as `time` but never used; renamed to satisfy lint rule.
-  const TIME = Date.now();
 
   const fetchData = async () => {
     try {
