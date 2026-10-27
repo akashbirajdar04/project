@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import api from "../../lib/api";
 import { UtensilsCrossed, Users, FileText, CalendarDays, ClipboardList, LogOut } from "lucide-react";
 import { Announcements } from "../announcements";
