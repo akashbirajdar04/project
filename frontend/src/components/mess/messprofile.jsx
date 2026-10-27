@@ -58,7 +58,7 @@ export const Messprofile = () => {
           },
           image: "",
         });
-      } catch (_) {
+      } catch {
         toast.error("Failed to load mess profile");
       } finally {
         setLoading(false);
@@ -113,7 +113,7 @@ export const Messprofile = () => {
       try {
         const res = await api.post("/upload", formData);
         uploaded.push(res.data?.url);
-      } catch (_) {
+      } catch {
         toast.error("Failed to upload image");
       }
     }
@@ -129,7 +129,7 @@ export const Messprofile = () => {
     try {
       await api.put(`/Profile/Messprofile/${id}`, form);
       toast.success("Mess profile saved successfully");
-    } catch (_) {
+    } catch {
       toast.error("Failed to save mess profile");
     } finally {
       setSaving(false);
