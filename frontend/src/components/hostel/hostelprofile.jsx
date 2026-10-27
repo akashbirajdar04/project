@@ -36,7 +36,7 @@ export const Hostelprofile = () => {
 
         setProfile(data);
       }
-    } catch (_) {
+    } catch {
       toast.error("Failed to load profile");
     } finally {
       setLoading(false);
@@ -78,7 +78,7 @@ export const Hostelprofile = () => {
       } else {
         toast.error("Failed to update profile");
       }
-    } catch (_) {
+    } catch {
       toast.error("An error occurred while saving");
     } finally {
       setSaving(false);
