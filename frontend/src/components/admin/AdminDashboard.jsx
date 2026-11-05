@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Users, Building2, AlertCircle, Trash2, Ban, CheckCircle, Loader2, FileText, ChevronLeft, ChevronRight } from "lucide-react";
 
 export const AdminDashboard = () => {
+    const hello= "world";
     const [stats, setStats] = useState(null);
     const [users, setUsers] = useState([]);
     const [complaints, setComplaints] = useState([]);
