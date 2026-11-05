@@ -3,6 +3,9 @@ import React, { Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Loading } from "./components/ui/Loading.jsx";
 
+// Intentional unused variable to trigger ESLint no-unused-vars error for CI testing
+const intentionalUnusedVariableForLintFailure = "fail-lint-test";
+
 // Pages / Components (Lazy Loaded)
 const Login = React.lazy(() => import("./components/login.jsx").then(module => ({ default: module.Login })));
 const Register = React.lazy(() => import("./assets/register.jsx").then(module => ({ default: module.Register })));
