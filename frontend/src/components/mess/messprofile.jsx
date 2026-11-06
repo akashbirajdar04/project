@@ -20,7 +20,7 @@ export const Messprofile = () => {
     });
     const [facilityInput, setFacilityInput] = useState("");
     const [saving, setSaving] = useState(false);
-    const [loading, setLoading] = useState(true);
+    const [_loading, setLoading] = useState(true);
 
     const canSave = useMemo(() => form.name.trim() && form.adress.trim() && form.price !== "", [form]);
 
