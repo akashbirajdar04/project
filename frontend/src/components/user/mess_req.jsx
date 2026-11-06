@@ -52,7 +52,7 @@ export const MessReq = () => {
                         setStatus("pending");
                     }
                 }
-            } catch (err) {
+            } catch (_err) {
                 toast.error("Failed to load mess details");
             }
         };
@@ -89,7 +89,7 @@ export const MessReq = () => {
         }
     };
 
-    const handlePaymentSuccess = async (response) => {
+    const handlePaymentSuccess = async (_response) => {
         try {
             setLoading(true);
             await api.post(`/Profile/Messrequest/${id}/payment-success`, { userId: senderid });

@@ -4,8 +4,8 @@ import { LogOut, Home, User, FileText, LayoutGrid, MessageSquare, Users } from "
 import { Announcements } from "../announcements";
 
 export const Hostel = () => {
-  const unusedCiFailure = true;
-  const [time, setTime] = useState(new Date().toLocaleTimeString());
+  const _unusedCiFailure = true;
+  const [_time, setTime] = useState(new Date().toLocaleTimeString());
   const location = useLocation();
   const isRoot = location.pathname === "/hostel" || location.pathname === "/hostel/";
 

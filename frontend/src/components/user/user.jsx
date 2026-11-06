@@ -13,15 +13,15 @@ export const User = () => {
     const [enrolledHostel, setEnrolledHostel] = useState(null)
     const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
     const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
-    const [day, setDay] = useState(DAYS[todayIdx])
-    const [slot, setSlot] = useState("lunch")
+    const [day, _setDay] = useState(DAYS[todayIdx])
+    const [slot, _setSlot] = useState("lunch")
     const [week, setWeek] = useState({})
-    const [cap, setCap] = useState({ remaining: 0, total: 0 })
-    const [bookings, setBookings] = useState([])
+    const [_cap, setCap] = useState({ remaining: 0, total: 0 })
+    const [_bookings, setBookings] = useState([])
     const [pendingComplaints, setPendingComplaints] = useState(0)
     const [resolvedComplaints, setResolvedComplaints] = useState(0)
 
-    const items = useMemo(() => week?.[day]?.[slot]?.items ?? [], [week, day, slot])
+    const _items = useMemo(() => week?.[day]?.[slot]?._items ?? [], [week, day, slot])
 
     useEffect(() => {
         const load = async () => {

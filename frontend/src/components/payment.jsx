@@ -1,9 +1,9 @@
 // PayButton.jsx
 import React from "react";
-import api from "../lib/api"; // Ensure api is imported for requests
+import _api from "../lib/api"; // Ensure api is imported for requests
 import { toast } from "sonner";
 
-function loadRazorpayScript(src) {
+function _loadRazorpayScript(src) {
     return new Promise((resolve) => {
         const script = document.createElement("script");
         script.src = src;
@@ -13,7 +13,7 @@ function loadRazorpayScript(src) {
     });
 }
 
-export default function PayButton({ amount, user, onSuccess, btnText = "Pay Now", className }) {
+export default function PayButton({ _amount, _user, onSuccess, btnText = "Pay Now", className }) {
     const handlePay = async () => {
         try {
             // MOCKING PAYMENT SUCCESS as per request "add the user if he clicks on pay option"

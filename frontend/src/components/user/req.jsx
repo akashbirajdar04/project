@@ -44,7 +44,7 @@ export const Req = () => {
             setStatus("pending");
           }
         }
-      } catch (err) {
+      } catch (_err) {
         toast.error("Failed to load hostel details");
       }
     };
@@ -80,7 +80,7 @@ export const Req = () => {
     }
   };
 
-  const handlePaymentSuccess = async (response) => {
+  const handlePaymentSuccess = async (_response) => {
     try {
       setLoading(true);
       // Call the enrollment confirmation endpoint

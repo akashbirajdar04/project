@@ -14,7 +14,7 @@ export const Hostelprofile = () => {
         rules: "",
         image: ""
     });
-    const [loading, setLoading] = useState(true);
+    const [_loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
     const load = async () => {
@@ -33,7 +33,7 @@ export const Hostelprofile = () => {
                 }
                 setProfile(data);
             }
-        } catch (e) {
+        } catch (_e) {
             // toast.error("Failed to load profile");
         } finally {
             setLoading(false);
