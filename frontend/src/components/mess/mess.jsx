@@ -7,14 +7,14 @@ import { Announcements } from "../announcements";
 export const Mess = () => {
   const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
   const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
-  const [day, setDay] = useState(DAYS[todayIdx])
-  const [slot, setSlot] = useState("lunch")
+  const [day, _setDay] = useState(DAYS[todayIdx])
+  const [slot, _setSlot] = useState("lunch")
   const [week, setWeek] = useState({})
   const [cap, setCap] = useState({ remaining: 0, total: 0 })
   const location = useLocation();
   const isRoot = location.pathname === "/mess" || location.pathname === "/mess/";
 
-  const items = useMemo(() => week?.[day]?.[slot]?.items ?? [], [week, day, slot])
+  const _items = useMemo(() => week?.[day]?.[slot]?._items ?? [], [week, day, slot])
 
   useEffect(() => {
     const load = async () => {
