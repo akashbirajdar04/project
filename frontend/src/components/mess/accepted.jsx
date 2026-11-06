@@ -21,7 +21,7 @@ const AcceptedMembers = () => {
       setItems(res.data?.data ?? []);
       setPage(res.data?.page ?? 1);
       setTotalPages(res.data?.totalPages ?? 1);
-    } catch (e) {
+    } catch (_e) {
       // toast.error("Failed to load accepted members");
     } finally {
       setLoading(false);
