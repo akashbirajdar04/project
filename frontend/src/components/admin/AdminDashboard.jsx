@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Users, Building2, AlertCircle, Trash2, Ban, CheckCircle, Loader2, FileText, ChevronLeft, ChevronRight } from "lucide-react";
 
 export const AdminDashboard = () => {
-    const hello= "world";
+    const _hello= "world";
     const [stats, setStats] = useState(null);
     const [users, setUsers] = useState([]);
     const [complaints, setComplaints] = useState([]);
@@ -26,7 +26,7 @@ export const AdminDashboard = () => {
         try {
             const res = await api.get("/api/v1/admin/stats");
             setStats(res.data.data);
-        } catch (e) {
+        } catch (_e) {
             toast.error("Failed to load stats");
         } finally {
             setLoading(false);
@@ -42,7 +42,7 @@ export const AdminDashboard = () => {
             setUsers(res.data.data.users);
             setTotalPages(prev => ({ ...prev, users: res.data.data.totalPages }));
             setTotalItems(prev => ({ ...prev, users: res.data.data.totalUsers }));
-        } catch (e) {
+        } catch (_e) {
             toast.error("Failed to load users");
         } finally {
             setLoading(false);
@@ -58,7 +58,7 @@ export const AdminDashboard = () => {
             setComplaints(res.data.data.complaints);
             setTotalPages(prev => ({ ...prev, complaints: res.data.data.totalPages }));
             setTotalItems(prev => ({ ...prev, complaints: res.data.data.totalComplaints }));
-        } catch (e) {
+        } catch (_e) {
             toast.error("Failed to load complaints");
         } finally {
             setLoading(false);
@@ -74,7 +74,7 @@ export const AdminDashboard = () => {
             setUpdates(res.data.data.updates);
             setTotalPages(prev => ({ ...prev, updates: res.data.data.totalPages }));
             setTotalItems(prev => ({ ...prev, updates: res.data.data.totalUpdates }));
-        } catch (e) {
+        } catch (_e) {
             toast.error("Failed to load updates");
         } finally {
             setLoading(false);
@@ -87,7 +87,7 @@ export const AdminDashboard = () => {
             await api.patch(`/api/v1/admin/users/${userId}/ban`);
             toast.success("User status updated");
             loadUsers();
-        } catch (e) {
+        } catch (_e) {
             toast.error("Failed to update user status");
         }
     };
@@ -98,7 +98,7 @@ export const AdminDashboard = () => {
             await api.delete(`/api/v1/admin/complaints/${id}`);
             toast.success("Complaint deleted");
             loadComplaints();
-        } catch (e) {
+        } catch (_e) {
             toast.error("Failed to delete complaint");
         }
     };
@@ -109,7 +109,7 @@ export const AdminDashboard = () => {
             await api.patch(`/api/v1/admin/updates/${id}/${action}`);
             toast.success(`Update ${action}d`);
             loadUpdates();
-        } catch (e) {
+        } catch (_e) {
             toast.error(`Failed to ${action} update`);
         }
     };
@@ -309,7 +309,7 @@ export const AdminDashboard = () => {
     );
 };
 
-const StatCard = ({ title, value, icon: Icon, color }) => (
+const StatCard = ({ title, value, icon: _Icon, color }) => (
     <div className={`p-6 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center gap-4 border-l-4 border-${color}-500`}>
         <div className={`p-3 rounded-full bg-${color}-50 text-${color}-600`}>
             <Icon size={24} />
