@@ -19,7 +19,7 @@ const StudentProfile = () => {
   });
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
